@@ -1,0 +1,88 @@
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	background-color: rgb(0,0,0);
+	color: rgb(230,230,230);
+	font-family: monospace;
+	text-align: center;
+}
+
+img {
+	margin-top: 10%;
+	margin-bottom: 10%;
+	margin-left:  auto;
+	margin-right: auto;
+	height: auto;
+	width: 15%;
+	display: block;
+}
+
+h1 {
+	font-size: 36pt;
+	text-decoration: underline;
+}
+
+p {
+	font-size: 10pt;
+}
+
+a {
+	color: rgb(230,230,230);
+	font-size: 12pt;
+	margin-left:  5px;
+	margin-right: 5px;
+}
+
+b {
+	font-size: 12pt;
+}
+
+code {
+	font-size: 12pt;
+	background-color: rgb(21,21,21);
+	outline: 1px solid rgb(69,69,69);
+	text-align: left;
+	margin-left:  auto;
+	margin-right: auto;
+	width: 69%;
+	line-height: 1.5;
+	display: block;
+}
+
+th {
+	background-color: rgb(21,21,21);
+	outline: 1px solid rgb(69,69,69);
+	line-height: 1.5;
+	font-size: 12pt;
+}
+
+table {
+	margin-left:  auto;
+	margin-right: auto;
+	margin-top:    10px;
+	margin-bottom: 10px;
+}
+
+main {
+	margin-top: 50px;
+	margin-bottom: 50px;
+}
+
+footer {
+	position: relative;
+	bottom: 0;
+}
+
+.description {
+	font-size: 20pt;
+}
+
+.about, .instructions {
+	font-size: 12pt;
+	line-height: 1.5;
+	width: 69%;
+	margin-left:  auto;
+	margin-right: auto;
+	text-align: left;
+}

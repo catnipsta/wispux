@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>About - Whispix Linux</title>
+		<link rel="icon" href="/favicon.ico" type="image/x-icon">
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<header>
+			<h1>Whispix</h1>
+			<a href="/index.html">Home</a>
+			<a href="/install.html">Installation Guide</a>
+			<a href="/about.html">About</a>
+		</header>
+		<main>
+			<b>The Drag Package Manager</b>
+			<p class="about">
+Whispix is a minimal, source-based Linux distribution that uses drag to manage its packages.
+Drag is written in Bash to deliver a fast and customizable set of tools.
+It works by fetching the PKGBUILDs from Arch Linux's repositories and the AUR to
+maximize package support. Drag encourages users to customize PKGBUILDs, resulting
+in a more refined and tailored system. It features file tracking for installed packages, allowing for 
+a clean removal of packages. Unlike most package managers, drag does not automatically resolve dependencies, though
+it does list the recommended dependencies provided by Arch.
+			</p>
+			<b>Initial Install</b>
+			<p class="about">
+The initial installation process consists of three main
+stages: the disk setup, bootstrap, and chroot. The expected end result, unless customized further, would be a very
+basic Linux system that doesn't even include a traditional init system. The standard Whispix
+installation provides a minimal shell script at /sbin/init to start necessary services.
+While surprising to some, this shell script is still very capable of running a
+real desktop environment. Currently, I am writing this using my daily system (running Whispix)
+configured to run modern applications such as Firefox, OBS, GIMP, Blender and others.
+			</p>
+			<b>Comparing</b>
+			<p class="about">
+Though I haven't given my package manager a true benchmark to compare to other
+distributions, from personal experience I can say as a former Gentoo user that my drag package
+manager does feel faster than Gentoo's portage when compiling, though keep in mind that this does not include dependency
+resolution. This means that the time it takes to install large sets of packages may very well take longer
+than you would expect on Gentoo since you must decide yourself which dependencies you wish
+to install. I personally prefer this, since I feel that I have more
+power and fine-tuned control over my system now. Gentoo's USE flags are genius and extremely efficient, but the
+fundamental concept begs you to consider that the developers must create these flags
+themselves and that not every possible USE flag for every possible package is going to be
+considered, therefore proving drag a more customizable package manager. Gentoo is nevertheless an extremely
+powerful and refined distribution, but Whispix does offer more fine-tuned control over your system if that is what you are looking for.
+			</p>
+			<b>Is Whispix Right For You?</b>
+			<p class="about">
+There is no "best" distribution. Each distribution has its strengths and picking the right
+one for you should be solely because of your personal preferences and needs in a system.
+Like many other advanced distributions, Whispix is definitely not for the average Linux user.
+Whispix is meant for people who have a deep understanding of Linux systems and manually
+compiling packages to suit their needs. Compiling packages, even with the default
+PKGBUILDs downloaded from Arch, will challenge you. You will run into all sorts of
+compilation, configuration, and run-time errors. If you struggle to compile or get packages
+to work on Gentoo or other source-based distributions, you will almost definitely struggle harder on Whispix.
+Now for those who understand how to compile and configure packages manually for your system, you may very
+well find Whispix to be just what you've been needing.
+			</p>
+		</main>
+		<footer>
+			<p>2025 Catnipsta - Nikolai Klover - GPLv3</p>
+		</footer>
+	</body>
+</html>
