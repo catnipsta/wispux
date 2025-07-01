@@ -1,2 +1,2 @@
-# Wispix
-Wispix — a minimal, source-based Linux distribution.
+# Whispix
+Whispix — a minimal, source-based Linux distribution.
