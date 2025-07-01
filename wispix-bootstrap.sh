@@ -128,7 +128,7 @@ glibc
 )
 
 if [[ "$EUID" -ne 0 ]]; then
-	echo "Wispix bootstrap script must be run as root."
+	echo "Whispix bootstrap script must be run as root."
 	echo
 	exit 1
 elif [[ $# != 1 || ! -d "$1" ]]; then
@@ -363,10 +363,10 @@ EOF
 	
 	pinch ca-certificates
 
-	echo "Branding Wispix..."
+	echo "Branding Whispix..."
 	cat > etc/os-release << "EOF"
-NAME="Wispix"
-ID="wispix"
+NAME="Whispix"
+ID="whispix"
 EOF
 	echo
 	echo "Done!"
