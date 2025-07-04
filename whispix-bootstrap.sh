@@ -209,8 +209,8 @@ EOF
 	fi
 
 	export DRAG_ROOT=$(pwd)
-	stash $cigs
-	smoke $cigs
+	stash ${cigs[@]}
+	smoke ${cigs[@]}
 
         echo "Pinching eudev"
         mkdir -p $ashtray/eudev/src
