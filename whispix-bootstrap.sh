@@ -55,10 +55,8 @@ libcap
 libcap-ng
 libbpf
 libffi
-libelf
 libidn2
 libisl
-libp11-kit
 libpipeline
 libpsl
 libmnl
