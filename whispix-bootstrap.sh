@@ -55,8 +55,10 @@ libcap
 libcap-ng
 libbpf
 libffi
+libelf
 libidn2
 libisl
+libp11-kit
 libpipeline
 libpsl
 libmnl
@@ -95,7 +97,6 @@ perl
 perl-xml-parser
 pkgconf
 popt
-procps-ng
 psmisc
 python
 python-flit-core
@@ -106,12 +107,10 @@ python-wheel
 readline
 rsync
 sed
-shadow
 tar
 tcl
 texinfo
 unzip
-util-linux
 vi
 wget
 xxhash
@@ -122,11 +121,12 @@ zlib-ng
 zstd
 binutils
 gcc
+gcc-libs
 glibc
 )
 
 if [[ "$EUID" -ne 0 ]]; then
-	echo "Whispix bootstrap script must be run as root."
+	echo "Wispix bootstrap script must be run as root."
 	echo
 	exit 1
 elif [[ $# != 1 || ! -d "$1" ]]; then
@@ -207,10 +207,65 @@ EOF
 	fi
 
 	export DRAG_ROOT=$(pwd)
-	stash ${cigs[@]}
-	smoke ${cigs[@]}
+	ashtray=$DRAG_ROOT/root/.cache/drag/ashtray
+	for cig in ${cigs[@]}; do
+		if [ ! -d $DRAG_ROOT/var/lib/drag/smoked/$cig ]; then
+		echo "Pinching $cig..."
+		url=$(wget --max-redirect=1 -O /dev/null https://archlinux.org/packages/core/x86_64/$cig/download 2>&1 | grep Location | grep ://) || url=$(wget --max-redirect=1 -O /dev/null https://archlinux.org/packages/core/any/$cig/download 2>&1 | grep Location | grep ://) || url=$(wget --max-redirect=1 -O /dev/null https://archlinux.org/packages/extra/x86_64/$cig/download 2>&1 | grep Location | grep ://) || url=$(wget --max-redirect=1 -O /dev/null https://archlinux.org/packages/extra/any/$cig/download 2>&1 | grep Location | grep ://)
+		url=${url#Location: }
+		url=${url%" [following]"}
+		mkdir -p $ashtray/$cig/pkg
+		wget -q -O $ashtray/$cig/pkg/$cig.pkg.tar.zst $url
+		wget -q -O $ashtray/$cig/pkg/$cig.pkg.tar.zst.sig $url.sig
+		echo "Verifying $cig..."
+		key="$(gpg --list-packets $ashtray/$cig/pkg/$cig.pkg.tar.zst.sig | grep keyid)"
+		key=${key##*keyid }
+		gpg --keyserver keyserver.ubuntu.com --recv-keys $key
+		gpg --verify $ashtray/$cig/pkg/$cig.pkg.tar.zst.sig $ashtray/$cig/pkg/$cig.pkg.tar.zst
+		echo "Arch Linux pre-built binary - unkown version" | tee $ashtray/$cig/ver
+		cd $ashtray/$cig/pkg
+		tar xf $cig.pkg.tar.zst
+		rm $cig.pkg.tar.zst*
+		smoke $cig
+		fi
+	done
+	rm -rf .INSTALL .BUILDINFO .PKGINFO .MTREE
 
-        echo "Pinching eudev"
+	mkdir -p $ashtray/shadow/src
+	cd $ashtray/shadow/src
+	wget -q https://github.com/shadow-maint/shadow/releases/download/4.17.3/shadow-4.17.3.tar.xz
+	if [[ $(md5sum shadow*.tar.xz) == *0da190e53ecee76237e4c8f3f39531ed* ]]; then
+		echo "Checksum matched for shadow"
+	else
+		echo "CHECKSUM VALIDATION FAILED FOR shadow"
+		exit 1
+	fi
+	tar xJf shadow*.tar.xz
+	cd shadow*/
+	./configure --prefix=/usr --sysconfdir=/etc --disable-static --with-{b,yes}crypt --without-libbsd --with-group-name-max-length=32
+	make
+	make exec_prefix=/usr DESTDIR=$ashtray/shadow/pkg install
+        echo "4.17.3" | tee $ashtray/shadow/ver
+	smoke shadow
+
+	pinch procps-ng
+	[ -e /bin/bash ] && ln -sf /bin/bash /bin/sh
+	cd $ashtray/procps-ng/src/procps
+	./autogen.sh
+	./configure --prefix=/usr --sysconfdir=/etc --disable-static --disable-kill
+	make
+	make DESTDIR=$ashtray/procps-ng/pkg install
+	smoke procps-ng
+
+	pinch util-linux
+	cd $ashtray/util-linux/src/util-linux
+	./autogen.sh
+	./configure --prefix=/usr --sysconfdir=/etc --disable-chfn-chsh --disable-login --disable-nologin --disable-su --disable-setpriv --disable-runuser --disable-pylibmount --disable-liblastlog2 --disable-static --without-python --without-systemd --without-systemdsystemunitdir
+	make
+	make DESTDIR=$ashtray/util-linux/pkg install
+	smoke util-linux
+
+        echo "Pinching eudev..."
         mkdir -p $ashtray/eudev/src
         cd $ashtray/eudev/src
         if [ ! -d eudev ]; then git clone https://github.com/eudev-project/eudev; fi
@@ -361,10 +416,10 @@ EOF
 	
 	pinch ca-certificates
 
-	echo "Branding Whispix..."
+	echo "Branding Wispix..."
 	cat > etc/os-release << "EOF"
-NAME="Whispix"
-ID="whispix"
+NAME="Wispix"
+ID="wispix"
 EOF
 	echo
 	echo "Done!"

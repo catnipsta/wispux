@@ -107,7 +107,9 @@ swapon /dev/sda2</code></pre>
 			<b>4. The Whispix Bootstrap</b>
 			<p class="instructions">
 			Whispix uses a shell script to create it's initial system.
-			Download it and make executable:
+			Most of the installed packages will be prebuilt binaries from Arch Linux's repos.
+			As a result, it is highly recommended to rebuild all packages after or towards the end of the install.
+			Download the script and make executable:
 			</p>
 			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap.sh
 chmod +x whispix-bootstrap.sh</code></pre>
@@ -130,42 +132,18 @@ cp drag/scripts/* /usr/bin/</code></pre>
 			It is highly recommended to at least review the list of packages that are going to be installed.
 			The variable cigs is a list of packages which are to be installed using the drag package manager.
 			If you are uncomfortable with the text editor vi, please replace that package with one you are familiar with.
-			When using the drag package manager (and Whispix bootstrap), it will autodetect common terminal text editors
-			on your system and send you to edit each PKGBUILD before it compiles and installs the package.
-			The order of detection goes vi, vim, nvim, emacs, and nano. If you have any of those installed on your host
-			system that you aren't comfortable using, please uninstall them. It is also advised to set the MAKEFLAGS, CFLAGS,
+			It is also advised to set the MAKEFLAGS, CFLAGS,
 			and CXXFLAGS variables before compiling packages. MAKEFLAGS, CFLAGS, and CXXFLAGS are commonly set as shown below.
 			</p>
 			<pre><code>export MAKEFLAGS="-j$(nproc)"
 export CFLAGS="-march=native -O2 -pipe"
 export CXXFLAGS="$CFLAGS"</code></pre>
 			<p class="instructions">
-			With dependencies installed, unnecessary text editors uninstalled, the bootstrap edited, and compile variables set,
+			With the bootstrap edited to your likings and the compile variables set,
 			you may now run the bootstrap script. Make sure to pass your target mount point as a parameter.
 			</p>
 			<code>
 			./whispix-boostrap.sh /mnt/whispix
-			</code>
-			<p class="instructions">
-			The bootstrap will open your terminal text editor for every package to be installed.
-			You don't have to edit all of them,
-			but it is highly recommended to review and edit many of the larger or core system packages. This mainly
-			includes packages like util-linux, shadow, and the compile toolchain (glibc, binutils, gcc), though keep in mind
-			that the compile toolchain will be rebuilt later. <b>It is HIGHLY recommended to change the source of glibc and gcc
-			to download older, more stable versions. This will render a much easier system to maintain.</b>
-			You may also run into compiling errors which will
-			prompt you to either edit the PKGBUILD or go to the build directory.
-			<p class="instructions">
-			To edit the PKGBUILD for package foo, you may run:
-			</p>
-			<code>
-			snoop foo
-			</code>
-			<p class="instructions">
-			To cd to the build directory of package foo, you may run:
-			</p>
-			<code>
-			cd ~/.cache/drag/ashtray/foo/src
 			</code>
 			<p class="instructions">
 			If the bootstrap fails and you believe you have solved the error, you may re-run the script as you did the
@@ -214,7 +192,7 @@ export PS1="(chroot) ${PS1}"</code></pre>
 			<b>6. Recompiling the toolchain</b>
 			<p class="instructions">
 			Though we aren't doing a full LFS-style multi-stage bootstrap, it's still recommended to recompile the
-			toolchain to ensure that it's not linked to anything outside of the chroot. We will start with binutils.
+			toolchain to ensure that it's only linked to libraries inside of the chroot. We will start with binutils.
 			Remember that it is going to prompt you to edit the PKGBUILD first.
 			</p>
 			<code>
@@ -366,7 +344,9 @@ grub-mkconfig /boot/grub/grub.cfg</code></pre>
 grub-mkconfig /boot/grub/grub.cfg</code></pre>
 			<b>10. The Finishing Touches</b>
 			<p class="instructions">
-			At this point, some people may choose to install and setup sudo for their user.
+			At this point of the installation, it is recommended to rebuild the prebuilt Arch Linux binaries.
+			This can be done similarly to how the packages in step 6 were rebuilt.
+			Some people may also choose to install and setup sudo for their user.
 			As you could have probably guessed by now, you can install sudo using the smoke command.
 			People may also choose to setup certain startup services at this point. Unlike practically every
 			Linux distribution, Whispix does not come with an init system unless you install one yourself. 
