@@ -207,7 +207,7 @@ EOF
 	fi
 
 	export DRAG_ROOT=$(pwd)
-	ashtray=$DRAG_ROOT/root/.cache/drag/ashtray
+	ashtray=~/.cache/drag/ashtray
 	for cig in ${cigs[@]}; do
 		if [ ! -d $DRAG_ROOT/var/lib/drag/smoked/$cig ]; then
 		echo "Pinching $cig..."

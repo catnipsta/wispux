@@ -108,7 +108,7 @@ swapon /dev/sda2</code></pre>
 			<p class="instructions">
 			Whispix uses a shell script to create it's initial system.
 			Most of the installed packages will be prebuilt binaries from Arch Linux's repos.
-			As a result, it is highly recommended to rebuild all packages after or towards the end of the install.
+			Because of this, it is highly recommended to rebuild all packages after or towards the end of the install.
 			Download the script and make executable:
 			</p>
 			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap.sh
@@ -127,13 +127,13 @@ sha256sum whispix-bootstrap.sh</code></pre>
 chmod +x drag/scripts/*
 cp drag/scripts/* /usr/bin/</code></pre>
 			<p class="instructions">
-			Git and wget are also required to run the bootstrap and drag, so ensure those are installed
+			Git, wget, gnupg, rsync, and zstd are also required to run the bootstrap and drag, so ensure those are installed
 			as well. Since the bootstrap is a shell script, <b>it is recommended to review and edit it before running.</b>
-			It is highly recommended to at least review the list of packages that are going to be installed.
-			The variable cigs is a list of packages which are to be installed using the drag package manager.
+			You should at the very least review the list of packages that are going to be installed.
+			The variable cigs contains the list of packages which are to be installed using Arch's prebuilt binaries.
 			If you are uncomfortable with the text editor vi, please replace that package with one you are familiar with.
-			It is also advised to set the MAKEFLAGS, CFLAGS,
-			and CXXFLAGS variables before compiling packages. MAKEFLAGS, CFLAGS, and CXXFLAGS are commonly set as shown below.
+			It is also advised to set the MAKEFLAGS, CFLAGS, and CXXFLAGS variables before compiling the packages
+			in the bootstrap. Below is a common example of how you can set your MAKEFLAGS, CFLAGS, and CXXFLAGS variables.
 			</p>
 			<pre><code>export MAKEFLAGS="-j$(nproc)"
 export CFLAGS="-march=native -O2 -pipe"
@@ -146,12 +146,11 @@ export CXXFLAGS="$CFLAGS"</code></pre>
 			./whispix-boostrap.sh /mnt/whispix
 			</code>
 			<p class="instructions">
-			If the bootstrap fails and you believe you have solved the error, you may re-run the script as you did the
-			first time.
+			If the bootstrap fails, you may re-run the script to try again.
 			</p>
 			<p class="instructions">
-			Edit /mnt/whispix/etc/profile to add your compile flags. If following the guide closely, the lines added
-			should look very similar to what is shown below.
+			Edit /mnt/whispix/etc/profile to set your compile flags for the new system.
+			If following the guide closely, the lines added should look very similar to what is shown below.
 			</p>
 			<pre><code>MAKEFLAGS="-j$(nproc)"
 CFLAGS="-march=native -O2 -pipe"
@@ -346,6 +345,7 @@ grub-mkconfig /boot/grub/grub.cfg</code></pre>
 			<p class="instructions">
 			At this point of the installation, it is recommended to rebuild the prebuilt Arch Linux binaries.
 			This can be done similarly to how the packages in step 6 were rebuilt.
+			You can list all of your smoked packages by running:<code>drag</code>
 			Some people may also choose to install and setup sudo for their user.
 			As you could have probably guessed by now, you can install sudo using the smoke command.
 			People may also choose to setup certain startup services at this point. Unlike practically every
