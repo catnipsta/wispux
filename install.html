@@ -127,20 +127,44 @@ sha256sum whispix-bootstrap.sh</code></pre>
 chmod +x drag/scripts/*
 cp drag/scripts/* /usr/bin/</code></pre>
 			<p class="instructions">
-			Git, wget, gnupg, rsync, and zstd are also required to run the bootstrap and drag, so ensure those are installed
-			as well. Since the bootstrap is a shell script, <b>it is recommended to review and edit it before running.</b>
+			Since the bootstrap is a shell script, <b>it is recommended to review and edit it before running.</b>
 			You should at the very least review the list of packages that are going to be installed.
 			The variable cigs contains the list of packages which are to be installed using Arch's prebuilt binaries.
 			If you are uncomfortable with the text editor vi, please replace that package with one you are familiar with.
-			It is also advised to set the MAKEFLAGS, CFLAGS, and CXXFLAGS variables before compiling the packages
-			in the bootstrap. Below is a common example of how you can set your MAKEFLAGS, CFLAGS, and CXXFLAGS variables.
+			In order to run the bootstrap script and drag commands you will need the following packages
+			present on your host system:
+			</p>
+			<pre><code>gnupg
+rsync
+tar
+xz
+zstd</code></pre>
+			<p class="instructions">
+			If you keep eudev in the list of packages to be installed, you will also need to have these tools installed
+			on your host system:
+			</p>
+			<pre><code>gcc
+make
+automake
+autoconf
+pkg-config
+libtool
+libxslt-devel
+gettext-devel
+gperf
+docbook-xml
+docbook-xsl</code></pre>
+			<p class="instructions">
+			If you keep eudev in the list, it is also advised to set the MAKEFLAGS, CFLAGS, and CXXFLAGS variables as it
+			will be compiled manually.
+			Below is a common example of how you can set your MAKEFLAGS, CFLAGS, and CXXFLAGS variables.
 			</p>
 			<pre><code>export MAKEFLAGS="-j$(nproc)"
 export CFLAGS="-march=native -O2 -pipe"
 export CXXFLAGS="$CFLAGS"</code></pre>
 			<p class="instructions">
-			With the bootstrap edited to your likings and the compile variables set,
-			you may now run the bootstrap script. Make sure to pass your target mount point as a parameter.
+			With the bootstrap edited to your likings, you may now run the bootstrap script
+			with your target mount point as the parameter.
 			</p>
 			<code>
 			./whispix-boostrap.sh /mnt/whispix
@@ -188,6 +212,13 @@ mount --make-slave /mnt/whispix/run</code></pre>
 			<pre><code>chroot /mnt/whispix /bin/bash
 source /etc/profile
 export PS1="(chroot) ${PS1}"</code></pre>
+			<p class="instructions">
+			Without DNS servers set, we won't be able to access the web using domain names.
+			To fix this we can add DNS servers to /etc/resolv.conf.
+			An example of what this file would look like if you chose to use Cloudflare's DNS servers is shown below.
+			</p>
+			<pre><code>1.1.1.1
+1.0.0.1</code></pre>
 			<b>6. Recompiling the toolchain</b>
 			<p class="instructions">
 			Though we aren't doing a full LFS-style multi-stage bootstrap, it's still recommended to recompile the

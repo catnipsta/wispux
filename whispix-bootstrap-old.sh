@@ -10,7 +10,6 @@ automake
 audit
 bash
 bc
-binutils
 bison
 brotli
 bzip2
@@ -29,12 +28,9 @@ findutils
 flex
 gawk
 gc
-gcc
-gcc-libs
 gdbm
 gettext
 git
-glibc
 gperf
 gmp
 gnupg
@@ -95,8 +91,6 @@ nettle
 ninja
 openssl
 p11-kit
-pam
-pambase
 patch
 pcre2
 perl
@@ -113,13 +107,10 @@ python-wheel
 readline
 rsync
 sed
-shadow
 tar
 tcl
 texinfo
 unzip
-util-linux
-util-linux-libs
 vi
 wget
 xxhash
@@ -128,10 +119,14 @@ zip
 zlib
 zlib-ng
 zstd
+binutils
+gcc
+gcc-libs
+glibc
 )
 
 if [[ "$EUID" -ne 0 ]]; then
-	echo "Whispix bootstrap script must be run as root."
+	echo "Wispix bootstrap script must be run as root."
 	echo
 	exit 1
 elif [[ $# != 1 || ! -d "$1" ]]; then
@@ -211,27 +206,10 @@ fi
 EOF
 	fi
 
-mkdir -p ~/.cache/drag/stash/eudev
-cat > ~/.cache/drag/stash/eudev/PKGBUILD << "EOF"
-pkgname="eudev"
-pkgver="9e7c4e7"
-source=("git+https://github.com/eudev-project/eudev.git#commit=$pkgver")
-
-build=(
-cd eudev
-./autogen.sh
-./configure --prefix=/usr --sysconfdir=/etc --disable-static
-make)
-
-package=(
-make DESTDIR=$ashtray/eudev/pkg install
-)
-EOF
-
 	export DRAG_ROOT=$(pwd)
 	ashtray=~/.cache/drag/ashtray
 	for cig in ${cigs[@]}; do
-		if [[ ! -d $DRAG_ROOT/var/lib/drag/smoked/$cig && cig != eudev ]]; then
+		if [ ! -d $DRAG_ROOT/var/lib/drag/smoked/$cig ]; then
 		echo "Pinching $cig..."
 		url=$(wget --max-redirect=1 -O /dev/null https://archlinux.org/packages/core/x86_64/$cig/download 2>&1 | grep Location | grep ://) || url=$(wget --max-redirect=1 -O /dev/null https://archlinux.org/packages/core/any/$cig/download 2>&1 | grep Location | grep ://) || url=$(wget --max-redirect=1 -O /dev/null https://archlinux.org/packages/extra/x86_64/$cig/download 2>&1 | grep Location | grep ://) || url=$(wget --max-redirect=1 -O /dev/null https://archlinux.org/packages/extra/any/$cig/download 2>&1 | grep Location | grep ://)
 		url=${url#Location: }
@@ -249,14 +227,58 @@ EOF
 		tar xf $cig.pkg.tar.zst
 		rm $cig.pkg.tar.zst*
 		smoke $cig
-		rm -rf $ashtray/$cig
-		elif [ ! -d $DRAG_ROOT/var/lib/drag/smoked/$cig ]; then
-		smoke $cig
 		fi
 	done
 	rm -rf .INSTALL .BUILDINFO .PKGINFO .MTREE
 
-	echo "Pinching init"
+	mkdir -p $ashtray/shadow/src
+	cd $ashtray/shadow/src
+	wget -q https://github.com/shadow-maint/shadow/releases/download/4.17.3/shadow-4.17.3.tar.xz
+	if [[ $(md5sum shadow*.tar.xz) == *0da190e53ecee76237e4c8f3f39531ed* ]]; then
+		echo "Checksum matched for shadow"
+	else
+		echo "CHECKSUM VALIDATION FAILED FOR shadow"
+		exit 1
+	fi
+	tar xJf shadow*.tar.xz
+	cd shadow*/
+	./configure --prefix=/usr --sysconfdir=/etc --disable-static --with-{b,yes}crypt --without-libbsd --with-group-name-max-length=32
+	make
+	make exec_prefix=/usr DESTDIR=$ashtray/shadow/pkg install
+        echo "4.17.3" | tee $ashtray/shadow/ver
+	smoke shadow
+
+	pinch procps-ng
+	[ -e /bin/bash ] && ln -sf /bin/bash /bin/sh
+	cd $ashtray/procps-ng/src/procps
+	./autogen.sh
+	./configure --prefix=/usr --sysconfdir=/etc --disable-static --disable-kill
+	make
+	make DESTDIR=$ashtray/procps-ng/pkg install
+	smoke procps-ng
+
+	pinch util-linux
+	cd $ashtray/util-linux/src/util-linux
+	./autogen.sh
+	./configure --prefix=/usr --sysconfdir=/etc --disable-chfn-chsh --disable-login --disable-nologin --disable-su --disable-setpriv --disable-runuser --disable-pylibmount --disable-liblastlog2 --disable-static --without-python --without-systemd --without-systemdsystemunitdir
+	make
+	make DESTDIR=$ashtray/util-linux/pkg install
+	smoke util-linux
+
+        echo "Pinching eudev..."
+        mkdir -p $ashtray/eudev/src
+        cd $ashtray/eudev/src
+        if [ ! -d eudev ]; then git clone https://github.com/eudev-project/eudev; fi
+        cd eudev
+        git checkout 9e7c4e7
+        ./autogen.sh
+        ./configure --prefix=/usr --sysconfdir=/etc --disable-static
+        make
+        make DESTDIR=$ashtray/eudev/pkg install
+        echo "commit 9e7c4e7" | tee $ashtray/eudev/ver
+        smoke eudev
+
+	echo "Pinching init..."
 	cat > $DRAG_ROOT/sbin/init << "EOF"
 #!/bin/sh
 
@@ -385,21 +407,21 @@ EOF
 	echo "Pinched power commands"
 	echo
 
-	echo "Pinching drag"
-	cd
-	rm -rf drag
+	echo "Pinching drag..."
 	git clone https://github.com/catnipsta/drag
 	chmod +x drag/scripts/*
-	mv drag/scripts/* $DRAG_ROOT/usr/bin/
+	mv drag/scripts/* usr/bin/
 	rm -rf drag
 	echo "Pinched drag!"
 	
 	pinch ca-certificates
 
-	echo "Branding Whispix"
-	cat > $DRAG_ROOT/etc/os-release << "EOF"
-NAME="Whispix"
-ID="whispix"
+	echo "Branding Wispix..."
+	cat > etc/os-release << "EOF"
+NAME="Wispix"
+ID="wispix"
 EOF
 	echo
 	echo "Done!"
+	echo
+fi
