@@ -353,9 +353,9 @@ grub-mkconfig /boot/grub/grub.cfg</code></pre>
 			<p class="instructions">
 			At this point of the installation, it is recommended to rebuild the prebuilt Arch Linux binaries.
 			This can be done similarly to how the packages in step 6 were rebuilt.
-			You can list all of your smoked packages by running:
+			You can rebuild all your packages by running:
 			</p>
-			<code>drags</code>
+			<code>smoke $(drags)</code>
 			<p class="instructions">
 			Some people may also choose at this point to install and set up certain packages such as eudev and sudo.
 			Unless you have cleared the .cache/stash folder of the root user, you should already have a PKGBUILD to assist you with eudev.
