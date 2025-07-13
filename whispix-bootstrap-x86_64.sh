@@ -208,6 +208,7 @@ EOF
 		tar xf $cig.pkg.tar.zst
 		rm $cig.pkg.tar.zst*
 		smoke $cig
+		rm -rf $ashtray/$cig
 		fi
 	done
 	rm -rf .INSTALL .BUILDINFO .PKGINFO .MTREE
