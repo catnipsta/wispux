@@ -11,31 +11,33 @@
 		<header>
 			<h1>Whispix</h1>
 			<a href="/whispix/index.html">Home</a>
-                        <a href="/whispix/install-x86_64.html">Installation Guide - x86_64</a>
+                        <a href="/whispix/install.html">Installation Guide</a>
                         <a href="/whispix/about.html">About</a>
 		</header>
 		<main>
 			<b>The Drag Package Manager</b>
 			<p class="about">
-Whispix is a minimal, source-based Linux distribution that uses drag to manage its packages.
+Whispix is a minimal, independent, source-based Linux distribution that uses the drag package manager.
 Drag is written in Bash to deliver a fast and customizable set of tools.
 It works by fetching the PKGBUILDs from Arch Linux's repositories and the AUR to
-maximize package support. Drag encourages users to customize PKGBUILDs, resulting
+maximize package support. Drag encourages users to edit PKGBUILDs, resulting
 in a more refined and tailored system. It features file tracking for installed packages, allowing for 
 a clean removal of packages. Unlike most package managers, drag does not automatically resolve dependencies, though
 it does list the recommended dependencies provided by Arch.
 			</p>
 			<b>System Requirements</b>
 			<p class="about">
-As of right now, Whispix's bootstrap only supports 64 bit systems meaning that you would have
-to modify the bootstrap to be able to create an initial system for another architecture. I'm considering
-simplifying the bootstrap process sometime in the future so that it doesn't rely on a specific architecture.
-Any help and suggestions for Whispix are greatly appreciated.
-			</p>
+Because Whispix is a source distribution that is built from scratch, you must be comfortable with your computer specifications.
+Building Whispix on old hardware could take quite some time due to large packages like glibc and gcc.
+Whispix does not rely on a singular processor type, making Whispix a universal distribution.
+The bootstrap follows a similar path to LFS. The default bootstrap compiles glibc and other gnu tools, but you are free
+to edit the bootstrap and make it your own. Any help and suggestions for Whispix are greatly appreciated.
+</p>
 			<b>Initial Install</b>
 			<p class="about">
-The initial installation process consists of three main
-stages: the disk setup, bootstrap, and chroot. The expected end result, unless customized further, would be a very
+Whispix compiles every package from scratch very similarly to LFS. Though thankfully, unlike LFS, a lot of it
+is automated by the bootstrap. 
+The expected result of an initial install, unless customized further, would be a very
 basic Linux system that doesn't even include a traditional init system. The standard Whispix
 installation provides a minimal shell script at /sbin/init to start necessary services.
 While surprising to some, this shell script is still very capable of running a

@@ -213,52 +213,52 @@ EOF
 	done
 	rm -rf .INSTALL .BUILDINFO .PKGINFO .MTREE
 
- echo "Pinching passwd"
-        cat > etc/passwd << "EOF"
+	echo "Pinching /etc/passwd"
+        cat > $DRAG_ROOT/etc/passwd << "EOF"
 root:x:0:0:root:/root:/bin/bash
 uuidd:x:80:80:uuid daemon user:/dev/null:/usr/bin/false
 nobody:x:65534:65534:Unprivileged User:/dev/null:/usr/bin/false
-EOF                                                            
-        echo "Pinching group"                                  
-        cat > etc/group << "EOF"
-root:x:0:                       
-bin:x:1:                        
-sys:x:2: 
+EOF
+        echo "Pinching /etc/group"
+        cat > $DRAG_ROOT/etc/group << "EOF"
+root:x:0: 
+bin:x:1: 
+sys:x:2:
 kmem:x:3:
 tape:x:4:
-tty:x:5: 
+tty:x:5:
 daemon:x:6:
 floppy:x:7:
-disk:x:8:  
-lp:x:9:    
+disk:x:8:
+lp:x:9:
 dialout:x:10:
-auto:x:11:   
-video:x:12:  
-utmp:x:13: 
+auto:x:11:
+video:x:12:
+utmp:x:13:
 cdrom:x:15:
-adm:x:16:  
+adm:x:16:
 messagebus:x:18:
-input:x:24:     
-mail:x:34:      
-kvm:x:61:  
+input:x:24:
+mail:x:34:
+kvm:x:61:
 uuidd:x:80:
 wheel:x:97:
 users:x:999:
 nogroup:x:65534:
-EOF             
-        echo "Pinching profile"
-        cat > etc/profile << "EOF"
-# /etc/profile                    
-                                  
+EOF
+        echo "Pinching /etc/profile"
+        cat > $DRAG_ROOT/etc/profile << "EOF"
+# /etc/profile
+
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
-                                                                        
-umask 022                                                               
-         
+
+umask 022
+
 if [ -d /etc/profile.d/ ]; then
         for f in /etc/profile.d/*.sh; do
-                [ -r "$f" ] && . "$f"   
-        done                            
-fi                                   
+                [ -r "$f" ] && . "$f"
+        done
+fi 
 EOF
 
 	echo "Pinching init"
@@ -301,8 +301,6 @@ setsid agetty tty4 38400 linux &
 while true; do wait; done
 EOF
 	chmod +x $DRAG_ROOT/sbin/init
-	echo "Pinched init"
-	echo
 	
 	echo "Pinching power commands..."
 	cat > $DRAG_ROOT/sbin/poweroff << "EOF"
@@ -387,8 +385,6 @@ echo "Halting..."
 echo h > /proc/sysrq-trigger
 EOF
 	chmod +x $DRAG_ROOT/sbin/poweroff $DRAG_ROOT/sbin/reboot $DRAG_ROOT/sbin/halt
-	echo "Pinched power commands"
-	echo
 
 	echo "Pinching drag"
 	cd
@@ -397,7 +393,6 @@ EOF
 	chmod +x drag/scripts/*
 	mv drag/scripts/* $DRAG_ROOT/usr/bin/
 	rm -rf drag
-	echo "Pinched drag!"
 	
 	pinch ca-certificates
 

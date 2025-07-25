@@ -17,12 +17,18 @@
 		<main>
 			<b>1. Preparations and Requirements</b>
 			<p class="instructions">
-			Before anything, I'd like to say that this is just a simple guide to get you started
-			and that you are free to customize Whispix in any way you'd like.
-			Now, to begin, you must be booted into a host disk that is different
-			from your target disk. The most idea way to achieve this is to flash
+			This is just a simple guide to get your system up and running,
+			you are free to customize Whispix and your installation process however you'd like.
+			This guide is directed towards 64 bit systems.
+			There is no official method as of this moment to install
+			Whispix on other architectures, though that isn't to say it's impossible.
+			A universal installation guide is in the works, but if you're desperate,
+			you could experiment with a modified bootstrap and the drag package managemer
+			to install necessary packages manually from outside and inside the chroot.
+			Now for 64 bit users, you must be booted into a host disk that is different
+			from your target disk. The most ideal way to achieve this is to flash
 			a live linux iso to a usb, cd, or other bootable device. Recommended
-			live images are Void, Arch, Artix, Gentoo, and CRUX. You may download
+			live distro images are Void, Arch, Artix, Gentoo, and CRUX. You may download
 			one of these images or another minimal live iso and flash it to a usb or cd
 			that doesn't have any important data saved to it. FLASHING A USB OR CD
 			WILL WIPE ALL DATA! Below is an example of flashing a void iso to the device at /dev/sdb.
@@ -31,8 +37,9 @@
 			dd if=void.iso of=/dev/sdb bs=4M status=progress
 			</code>
 			<p class="instructions">
-			Once booted into the live iso on a system with the target drive still attached,
-			you may move on to the following steps.
+			This installation process also requires an interent connection.
+			Once booted into the live iso on a system with the target drive still attached and an
+			active internet connection, you may move on to the following steps.
 			</p>
 			<b>2. Partitioning and Formatting</b>
 			<p class="instructions">
@@ -111,15 +118,15 @@ swapon /dev/sda2</code></pre>
 			Because of this, it is highly recommended to rebuild all packages after or towards the end of the install.
 			Download the script and make executable:
 			</p>
-			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap.sh
-chmod +x whispix-bootstrap.sh</code></pre>
+			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap-x86_64.sh
+chmod +x whispix-bootstrap-x86_64.sh</code></pre>
 			<p class="instructions">
 			If paranoid (don't kill me hardcore UNIX fanboys), you may download the sha256 sum of the bootstrap and
 			verify the bootstrap as shown below.
 			</p>
-			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap-sha256
-cat whispix-bootstrap-sha256
-sha256sum whispix-bootstrap.sh</code></pre>
+			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap-x86_64-sha256
+cat whispix-bootstrap-x86_64-sha256
+sha256sum whispix-bootstrap-x86_64.sh</code></pre>
 			<p class="instructions">
 			Before running the script, you must install the drag package manager as it is required by the bootstrap script.
 			</p>
@@ -134,34 +141,13 @@ cp drag/scripts/* /usr/bin/</code></pre>
 			In order to run the bootstrap script and drag commands you will need the following packages
 			present on your host system:
 			</p>
-			<pre><code>gnupg
+			<pre><code>wget
+git
+gnupg
 rsync
 tar
 xz
 zstd</code></pre>
-			<p class="instructions">
-			If you keep eudev in the list of packages to be installed, you will also need to have these tools installed
-			on your host system:
-			</p>
-			<pre><code>gcc
-make
-automake
-autoconf
-pkg-config
-libtool
-libxslt-devel
-gettext-devel
-gperf
-docbook-xml
-docbook-xsl</code></pre>
-			<p class="instructions">
-			If you keep eudev in the list, it is also advised to set the MAKEFLAGS, CFLAGS, and CXXFLAGS variables as it
-			will be compiled manually.
-			Below is a common example of how you can set your MAKEFLAGS, CFLAGS, and CXXFLAGS variables.
-			</p>
-			<pre><code>export MAKEFLAGS="-j$(nproc)"
-export CFLAGS="-march=native -O2 -pipe"
-export CXXFLAGS="$CFLAGS"</code></pre>
 			<p class="instructions">
 			With the bootstrap edited to your likings, you may now run the bootstrap script
 			with your target mount point as the parameter.
@@ -180,11 +166,12 @@ export CXXFLAGS="$CFLAGS"</code></pre>
 CFLAGS="-march=native -O2 -pipe"
 CXXFLAGS="$CFLAGS"</code></pre>
 			<p class="instructions">
-			Before compiling the toolchain inside the chroot, we must add the Linux kernel headers. You can download your
+			Before compiling the toolchain in the chroot, we must add the Linux kernel headers. You can download your
 			desired Linux kernel from kernel.org. <b>It is HIGHLY recommended to download a slightly older,
 			stable kernel version. This will render a much easier system to maintain.</b>
 			Below is an example of how you can download the Linux kernel 6.1.142, extract it, and install the kernel headers.
-			You can verify it's signature as well, though not required. Remember that you must be very careful to not
+			To run the make commands, you will need to have make and gcc installed on your host system.
+			You can verify the tarball's signature as well, though it's not required. Remember that you must be very careful to not
 			accidently click on the ads on kernel.org that tell you about hot singles in your area. THEY AREN'T REAL.
 			</p>
 			<pre><code>cd /mnt/whispix/usr/src
@@ -217,8 +204,8 @@ export PS1="(chroot) ${PS1}"</code></pre>
 			To fix this we can add DNS servers to /etc/resolv.conf.
 			An example of what this file would look like if you chose to use Cloudflare's DNS servers is shown below.
 			</p>
-			<pre><code>1.1.1.1
-1.0.0.1</code></pre>
+			<pre><code>nameserver 1.1.1.1
+nameserver 1.0.0.1</code></pre>
 			<b>6. Recompiling the toolchain</b>
 			<p class="instructions">
 			Though we aren't doing a full LFS-style multi-stage bootstrap, it's still recommended to recompile the
@@ -376,16 +363,14 @@ grub-mkconfig /boot/grub/grub.cfg</code></pre>
 			<p class="instructions">
 			At this point of the installation, it is recommended to rebuild the prebuilt Arch Linux binaries.
 			This can be done similarly to how the packages in step 6 were rebuilt.
-			You can list all of your smoked packages by running:
+			You can rebuild all your packages by running:
 			</p>
-			<code>drags</code>
+			<code>smoke $(drags)</code>
 			<p class="instructions">
-			Some people may also choose to install and setup sudo for their user.
-			As you could have probably guessed by now, you can install sudo using the smoke command.
-			People may also choose to setup certain startup services at this point. Unlike practically every
-			Linux distribution, Whispix does not come with an init system unless you install one yourself. 
-			It instead comes with a basic shell script at /sbin/init that you can add your startup services
-			to.
+			Some people may also choose at this point to install and set up certain packages such as eudev and sudo.
+			Unless you have cleared the .cache/stash folder of the root user, you should already have a PKGBUILD to assist you with eudev.
+			Unlike other distros, Whispix does not have an init system unless you install one yourself. 
+			It does however have a basic shell script at /sbin/init that you can add your startup services to.
 			</p>
 			<p class="instructions">
 			You may now exit the chroot, unmount your newly created system, and reboot.
