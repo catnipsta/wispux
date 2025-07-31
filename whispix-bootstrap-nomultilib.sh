@@ -33,7 +33,6 @@ pkgconf
 binutils
 gmp
 mpfr
-mpc
 libmpc
 attr
 acl
@@ -104,10 +103,11 @@ ln -sf $DRAG_ROOT/root/.cache/drag ~/.cache
 mkdir -p $DRAG_ROOT/root/.cache/whispix-bootstrap
 mkdir -p ~/.cache
 ln -sf $DRAG_ROOT/root/.cache/whispix-bootstrap ~/.cache
-export PATH=$DRAG_ROOT/usr/bin:$PATH
+export PATH=$DRAG_ROOT/tools/bin:$PATH
 export TGT=$(uname -m)-whispix-linux-gnu
 export LC_ALL=POSIX
 export CONFIG_SITE=$DRAG_ROOT/usr/share/config.site
+unset CFLAGS CXXFLAGS
 ashtray=~/.cache/drag/ashtray
 if [ -f ~/.cache/whispix-bootstrap/krnlver ]; then
 	KRNLVER=$(cat ~/.cache/whispix-bootstrap/krnlver)
@@ -213,6 +213,10 @@ umask 022
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 export ashtray=~/.cache/drag/ashtray
+
+EOF
+echo "export MAKEFLAGS='"$MAKEFLAGS"'" >> $DRAG_ROOT/etc/profile
+	cat >> $DRAG_ROOT/etc/profile << "EOF"
 
 if [ -d /etc/profile.d/ ]; then
         for f in /etc/profile.d/*.sh; do
@@ -364,9 +368,9 @@ echo
 
 rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
 
-read -p "What Linux kernel version do you wish to use? (eg. 6.1.142) " KRNLVER
-read -p "Glibc version? (eg. 2.36) " GLIBCVER
-read -p "GCC version?   (eg. 12.5.0) " GCCVER
+read -p "What Linux kernel version do you wish to use? (eg. 6.12.40) " KRNLVER
+read -p "Glibc version? (eg. 2.41) " GLIBCVER
+read -p "GCC version?   (eg. 14.2.0) " GCCVER
 
 wget --spider https://ftp.gnu.org/gnu/glibc/glibc-$GLIBCVER.tar.xz
 wget --spider https://ftp.gnu.org/gnu/gcc/gcc-$GCCVER/gcc-$GCCVER.tar.xz
@@ -387,16 +391,11 @@ echo
 echo "STAGE 3 - Download PKGBUILDs"
 echo
 
-echo "Note:"
-echo "You may find yourself wanting to edit or view PKGBUILDs for packages if you come along errors during STAGE 34."
-echo "You may edit PKGBUILDs via the snoop command."
-echo
-
-rm $DRAG_ROOT/usr/bin/snoop
-touch $DRAG_ROOT/usr/bin/snoop
-chmod +x $DRAG_ROOT/usr/bin/snoop
+rm /usr/bin/snoop
+touch /usr/bin/snoop
+chmod +x /usr/bin/snoop
 stash ${cigs[@]}
-cp /usr/bin/snoop $DRAG_ROOT/usr/bin/snoop
+cp $DRAG_ROOT/usr/bin/snoop /usr/bin/snoop
 
 cat > ~/.cache/drag/stash/glibc/PKGBUILD << EOF
 pkgname=glibc
@@ -427,8 +426,21 @@ package() {
 cd glibc-$pkgver
 
 make DESTDIR=$pkgdir install
+
 sed '/RTLDLIST=/s@/usr@@g' -i $pkgdir/usr/bin/ldd
+mkdir -p $pkgdir/etc
+echo "passwd: files" >  $pkgdir/etc/nsswitch.conf
+echo "group: files" >> $pkgdir/etc/nsswitch.conf
+echo "shadow: files" >> $pkgdir/etc/nsswitch.conf
+echo "hosts: files dns" >> $pkgdir/etc/nsswitch.conf
+echo "networks: files" >> $pkgdir/etc/nsswitch.conf
+echo "protocols: files" >> $pkgdir/etc/nsswitch.conf
+echo "services: files" >> $pkgdir/etc/nsswitch.conf
+echo "ethers: files" >> $pkgdir/etc/nsswitch.conf
+echo "rpc: files" >> $pkgdir/etc/nsswitch.conf
+echo "/usr/local/lib" > $pkgdir/etc/ld.so.conf
 }
+
 EOF
 
 cat > ~/.cache/drag/stash/gcc/PKGBUILD << EOF
@@ -490,7 +502,98 @@ echo
 echo "STAGE 4 - Download source"
 echo
 
-pinch ${cigs[@]}
+cigars=(
+coreutils
+diffutils
+file
+findutils
+grep
+gzip
+patch
+xz
+zlib
+flex
+pkgconf
+attr
+acl
+psmisc
+libtool
+expat
+inetutils
+automake
+groff
+shadow
+gdbm
+check
+wget
+)
+
+(cigars2=()
+source ~/.cache/drag/stash/coreutils/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/coreutils/coreutils-$pkgver.tar.xz)
+source ~/.cache/drag/stash/diffutils/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/diffutils/diffutils-$pkgver.tar.xz)
+source ~/.cache/drag/stash/file/PKGBUILD
+cigars2+=(https://astron.com/pub/file/file-$pkgver.tar.gz)
+source ~/.cache/drag/stash/findutils/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/findutils/findutils-$pkgver.tar.xz)
+source ~/.cache/drag/stash/grep/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/grep/grep-$pkgver.tar.xz)
+source ~/.cache/drag/stash/gzip/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/gzip/gzip-$pkgver.tar.xz)
+source ~/.cache/drag/stash/patch/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/patch/patch-$pkgver.tar.xz)
+source ~/.cache/drag/stash/xz/PKGBUILD
+cigars2+=(https://github.com//tukaani-project/xz/releases/download/v$pkgver/xz-$pkgver.tar.xz)
+source ~/.cache/drag/stash/zlib/PKGBUILD
+cigars2+=(https://zlib.net/fossils/zlib-$pkgver.tar.gz)
+source ~/.cache/drag/stash/flex/PKGBUILD
+cigars2+=(https://github.com/westes/flex/releases/download/v$pkgver/flex-$pkgver.tar.gz)
+source ~/.cache/drag/stash/pkgconf/PKGBUILD
+cigars2+=(https://distfiles.ariadne.space/pkgconf/pkgconf-$pkgver.tar.xz)
+source ~/.cache/drag/stash/attr/PKGBUILD
+cigars2+=(https://download.savannah.gnu.org/releases/attr/attr-$pkgver.tar.gz)
+source ~/.cache/drag/stash/acl/PKGBUILD
+cigars2+=(https://download.savannah.gnu.org/releases/acl/acl-$pkgver.tar.xz)
+source ~/.cache/drag/stash/psmisc/PKGBUILD
+cigars2+=(https://sourceforge.net/projects/psmisc/files/psmisc/psmisc-$pkgver.tar.xz)
+source ~/.cache/drag/stash/libtool/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/libtool/libtool-${pkgver%%+*}.tar.xz)
+source ~/.cache/drag/stash/expat/PKGBUILD
+cigars2+=(https://prdownloads.sourceforge.net/expat/expat-$pkgver.tar.xz)
+source ~/.cache/drag/stash/inetutils/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/inetutils/inetutils-$pkgver.tar.xz)
+source ~/.cache/drag/stash/automake/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/automake/automake-$pkgver.tar.xz)
+source ~/.cache/drag/stash/groff/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/groff/groff-$pkgver.tar.gz)
+source ~/.cache/drag/stash/shadow/PKGBUILD
+cigars2+=(https://github.com/shadow-maint/shadow/releases/download/$pkgver/shadow-$pkgver.tar.xz)
+source ~/.cache/drag/stash/gdbm/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/gdbm/gdbm-$pkgver.tar.gz)
+source ~/.cache/drag/stash/check/PKGBUILD
+cigars2+=(https://github.com/libcheck/check/releases/download/$pkgver/check-$pkgver.tar.gz)
+source ~/.cache/drag/stash/wget/PKGBUILD
+cigars2+=(https://ftp.gnu.org/gnu/wget/wget-$pkgver.tar.gz)
+
+for ((i=0; i<${#cigars[@]}; i++)); do
+	mkdir -p $ashtray/${cigars[$i]}/src
+	cd $ashtray/${cigars[$i]}/src
+	wget -nc ${cigars2[$i]}
+	for file in *; do
+		if [ $file == *.tar.xz ]; then
+			tar xJf $file || (rm $file && echo "Please re-run the script.")
+		elif [ $file == *.tar.gz ]; then
+			tar xzf $file || (rm $file && echo "Please re-run the script.")
+		fi
+	done
+done)
+
+for i in ${cigs[@]}; do
+        if ! printf "%s\n" "${cigars[@]}" | grep -wq "$i"; then
+		pinch $i
+        fi
+done
 
 touch ~/.cache/whispix-bootstrap/4
 fi
@@ -505,14 +608,16 @@ rm -rf build
 mkdir -p build
 cd build
 
-../configure --prefix=$DRAG_ROOT/usr \
+../configure --prefix=$DRAG_ROOT/tools \
 	--with-sysroot=$DRAG_ROOT \
 	--target=$TGT \
 	--disable-nls \
 	--enable-gprofng=no \
 	--disable-werror \
 	--enable-new-dtags \
-	--enable-default-hash-style=gnu
+	--enable-default-hash-style=gnu \
+	--disable-gdb \
+	--disable-gdbserver
 make
 make install
 
@@ -524,12 +629,12 @@ echo "STAGE 6 - GCC pass 1"
 echo
 
 cd $ashtray/gcc/src/gcc*/
-#cp -r $ashtray/mpfr/src/mpfr*/ mpfr
-#cp -r $ashtray/gmp/src/gmp*/   gmp
-#cp -r $ashtray/mpc/src/mpc*/   mpc
 tar xJf $ashtray/mpfr/src/mpfr*.tar.xz
 lzip -cd $ashtray/gmp/src/gmp*.tar.lz | tar xf -
-tar xJf $ashtray/mpc/src/mpc*.tar.xz
+tar xzf $ashtray/libmpc/src/mpc*.tar.gz
+rm -rf mpfr
+rm -rf gmp
+rm -rf mpc
 mv mpfr*/ mpfr
 mv gmp*/ gmp
 mv mpc*/ mpc
@@ -539,7 +644,7 @@ mkdir -p build
 cd build
 
 ../configure --target=$TGT \
-	--prefix=$DRAG_ROOT \
+	--prefix=$DRAG_ROOT/tools \
 	--with-glibc-version=$GLIBCVER \
 	--with-sysroot=$DRAG_ROOT \
 	--with-newlib \
@@ -583,9 +688,11 @@ echo
 echo "STAGE 8 - Glibc"
 echo
 
-rm -rf $ashtray/glibc/src/glibc*/build
-mkdir -p $ashtray/glibc/src/glibc*/build
-cd $ashtray/glibc/src/glibc*/build
+cd $ashtray/glibc/src/glibc*/
+
+rm -rf build
+mkdir -p build
+cd build
 
 echo "rootsbindir=/usr/sbin" > configparms
 ../configure --prefix=/usr \
@@ -607,9 +714,11 @@ echo
 echo "STAGE 9 - libstdc++"
 echo
 
-rm -rf $ashtray/gcc/src/gcc*/build
-mkdir -p $ashtray/gcc/src/gcc*/build
-cd $ashtray/gcc/src/gcc*/build
+cd $ashtray/gcc/src/gcc*/
+
+rm -rf build
+mkdir -p build
+cd build
 
 ../libstdc++-v3/configure --host=$TGT \
 	--build=$(../config.guess) \
@@ -617,7 +726,7 @@ cd $ashtray/gcc/src/gcc*/build
 	--disable-multilib \
 	--disable-nls \
 	--disable-libstdcxx-pch \
-	--with-gxx-include-dir=$DRAG_ROOT/usr/$TGT/include/c++/$GCCVER*
+	--with-gxx-include-dir=/tools/$TGT/include/c++/$GCCVER
 make
 make DESTDIR=$DRAG_ROOT install
 rm -f $DRAG_ROOT/usr/lib/lib{stdc++{,exp,fs},supc++}.la
@@ -633,9 +742,9 @@ cd $ashtray/m4/src/m4*/
 
 ./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
 make
-make DESTDIR=$ashtray/m4/pkg install
-touch $ashtray/m4/.rolled
-smoke m4
+make DESTDIR=$DRAG_ROOT install
+
+pinch m4
 
 touch ~/.cache/whispix-bootstrap/10
 fi
@@ -666,10 +775,7 @@ cd $ashtray/ncurses/src/ncurses*/
 	--disable-stripping \
 	AWK=gawk
 make
-make DESTDIR=$ashtray/ncurses/pkg TIC_PATH=$(pwd)/build/progs/tic install
-touch $ashtray/ncurses/.rolled
-smoke ncurses
-
+make DESTDIR=$DRAG_ROOT TIC_PATH=$(pwd)/build/progs/tic install
 ln -s libncursesw.so $DRAG_ROOT/usr/lib/libncurses.so
 sed -e 's/^#if.*XOPEN.*$/#if 1/' -i $DRAG_ROOT/usr/include/curses.h
 
@@ -684,10 +790,7 @@ cd $ashtray/bash/src/bash*/
 
 ./configure --prefix=/usr --host=$TGT --build=$(sh support/config.guess) --without-bash-malloc
 make
-make DESTDIR=$ashtray/bash/pkg install
-touch $ashtray/bash/.rolled
-smoke bash
-
+make DESTDIR=$DRAG_ROOT install
 ln -s bash $DRAG_ROOT/bin/sh
 
 touch ~/.cache/whispix-bootstrap/12
@@ -697,13 +800,14 @@ echo
 echo "STAGE 13 - coreutils"
 echo
 
-cd $ashtray/coreutils/src/coreutils*/
+cd $ashtray/coreutils/src/coreutils/
+
+[ -d $ashtray/pkgconf/src/pkgconf ] || pinch pkgconf
+cp $ashtray/pkgconf/src/pkgconf*/pkg.m4 /usr/share/aclocal/pkg.m4
 
 ./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess) --enable-install-program=hostname --enable-no-install-program=kill,uptime
 make
-make DESTDIR=$ashtray/coreutils/pkg install
-touch $ashtray/coreutils/.rolled
-smoke coreutils
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/13
 fi
@@ -712,13 +816,13 @@ echo
 echo "STAGE 14 - diffutils"
 echo
 
-cd $ashtray/diffutils/src/diffutils*/
+cd $ashtray/diffutils/src/diffutils/
 
-./configure --prefix=/usr --host=$TGT --build=$(./build-aux/config.guess)
+export CFLAGS="-Wno-error"
+./configure --prefix=/usr --host=$TGT --build=$(./build-aux/config.guess) gl_cv_func_strcasecmp_works=y
 make
-make DESTDIR=$ashtray/diffutils/pkg install
-touch $ashtray/diffutils/.rolled
-smoke diffutils
+make DESTDIR=$DRAG_ROOT install
+unset CFLAGS
 
 touch ~/.cache/whispix-bootstrap/14
 fi
@@ -727,20 +831,18 @@ echo
 echo "STAGE 15 - file"
 echo
 
-cd $ashtray/file/src/file*/
+cd $ashtray/file/src/file/
 
 mkdir -p build
 cd build
 ../configure --disable-bzlib --disable-libseccomp --disable-xzlib --disable-zlib
 make
-cd $ashtray/file/src/file*/
+cd $ashtray/file/src/file/
 
 ./configure --prefix=/usr --host=$TGT --build=$(./config.guess)
 make FILE_COMPILE=$(pwd)/build/src/file
-make DESTDIR=$ashtray/file/pkg install
-rm -f $ashtray/file/pkg/usr/lib/libmagic.la
-touch $ashtray/file/.rolled
-smoke file
+make DESTDIR=$DRAG_ROOT install
+rm -f $DRAG_ROOT/usr/lib/libmagic.la
 
 touch ~/.cache/whispix-bootstrap/15
 fi
@@ -749,13 +851,11 @@ echo
 echo "STAGE 16 - findutils"
 echo
 
-cd $ashtray/findutils/src/findutils*/
+cd $ashtray/findutils/src/findutils/
 
 ./configure --prefix=/usr --localstatedir=/var/lib/locate --host=$TGT --build=$(build-aux/config.guess)
 make
-make DESTDIR=$ashtray/findutils/pkg install
-touch $ashtray/findutils/.rolled
-smoke findutils
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/16
 fi
@@ -768,9 +868,7 @@ cd $ashtray/gawk/src/gawk*/
 
 ./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
 make
-make DESTDIR=$ashtray/gawk/pkg install
-touch $ashtray/gawk/.rolled
-smoke gawk
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/17
 fi
@@ -779,13 +877,11 @@ echo
 echo "STAGE 18 - grep"
 echo
 
-cd $ashtray/grep/src/grep*/
+cd $ashtray/grep/src/grep/
 
 ./configure --prefix=/usr --host=$TGT --build=$(./build-aux/config.guess)
 make
-make DESTDIR=$ashtray/grep/pkg install
-touch $ashtray/grep/.rolled
-smoke grep
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/18
 fi
@@ -794,13 +890,11 @@ echo
 echo "STAGE 19 - gzip"
 echo
 
-cd $ashtray/gzip/src/gzip*/
+cd $ashtray/gzip/src/gzip/
 
 ./configure --prefix=/usr --host=$TGT
 make
-make DESTDIR=$ashtray/gzip/pkg install
-touch $ashtray/gzip/.rolled
-smoke gzip
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/19
 fi
@@ -813,9 +907,7 @@ cd $ashtray/make/src/make*/
 
 ./configure --prefix=/usr --host=$TGT --without-guile --build=$(build-aux/config.guess)
 make
-make DESTDIR=$ashtray/make/pkg install
-touch $ashtray/make/.rolled
-smoke make
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/20
 fi
@@ -824,13 +916,11 @@ echo
 echo "STAGE 21 - patch"
 echo
 
-cd $ashtray/patch/src/patch*/
+cd $ashtray/patch/src/patch/
 
 ./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
 make
-make DESTDIR=$ashtray/patch/pkg install
-touch $ashtray/patch/.rolled
-smoke patch
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/21
 fi
@@ -843,9 +933,7 @@ cd $ashtray/sed/src/sed*/
 
 ./configure --prefix=/usr --host=$TGT --build=$(./build-aux/config.guess)
 make
-make DESTDIR=$ashtray/sed/pkg install
-touch $ashtray/sed/.rolled
-smoke sed
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/22
 fi
@@ -858,9 +946,7 @@ cd $ashtray/tar/src/tar*/
 
 ./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
 make
-make DESTDIR=$ashtray/tar/pkg install
-touch $ashtray/tar/.rolled
-smoke tar
+make DESTDIR=$DRAG_ROOT install
 
 touch ~/.cache/whispix-bootstrap/23
 fi
@@ -869,14 +955,12 @@ echo
 echo "STAGE 24 - xz"
 echo
 
-cd $ashtray/xz/src/xz*/
+cd $ashtray/xz/src/xz/
 
 ./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess) --disable-static
 make
-make DESTDIR=$ashtray/xz/pkg install
-rm -f $ashtray/xz/pkg/usr/lib/liblzma.la
-touch $ashtray/xz/.rolled
-smoke xz
+make DESTDIR=$DRAG_ROOT install
+rm -f $DRAG_ROOT/usr/lib/liblzma.la
 
 touch ~/.cache/whispix-bootstrap/24
 fi
@@ -901,10 +985,16 @@ cd build
 	--disable-werror \
 	--enable-64-bit-bfd \
 	--enable-new-dtags \
-	--enable-default-hash-style=gnu
+	--enable-default-hash-style=gnu \
+	--without-zstd \
+	--disable-gdb \
+	--disable-gdbserver
 make
 make DESTDIR=$DRAG_ROOT install
 rm -f $DRAG_ROOT/usr/lib/lib{bfd,ctf,ctf-nobfd,opcodes,sframe}.{a,la}
+
+cd $ashtray
+pinch binutils
 
 touch ~/.cache/whispix-bootstrap/25
 fi
@@ -914,12 +1004,12 @@ echo "STAGE 26 - GCC pass 2"
 echo
 
 cd $ashtray/gcc/src/gcc*/
-#cp -r $ashtray/mpfr/src/mpfr*/ mpfr
-#cp -r $ashtray/gmp/src/gmp*/   gmp
-#cp -r $ashtray/mpc/src/mpc*/   mpc
 tar xJf $ashtray/mpfr/src/mpfr*.tar.xz
 lzip -cd $ashtray/gmp/src/gmp*.tar.lz | tar xf -
-tar xJf $ashtray/mpc/src/mpc*.tar.xz
+tar xzf $ashtray/libmpc/src/mpc*.tar.gz
+rm -rf mpfr
+rm -rf gmp
+rm -rf mpc
 mv mpfr*/ mpfr
 mv gmp*/ gmp
 mv mpc*/ mpc
@@ -934,9 +1024,11 @@ cd build
 	--target=$TGT \
 	LDFLAGS_FOR_TARGET=-L$PWD/$TGT/libgcc \
 	--prefix=/usr \
-	--with-build-sysroot=$TGT \
+	CC_FOR_TARGET=$TGT-gcc \
+	--with-build-sysroot=$DRAG_ROOT \
 	--enable-default-pie \
 	--enable-default-ssp \
+	--enable-initfini-array \
 	--disable-nls \
 	--disable-multilib \
 	--disable-libatomic \
@@ -950,78 +1042,50 @@ make
 make DESTDIR=$DRAG_ROOT install
 ln -s gcc $DRAG_ROOT/usr/bin/cc
 
+cd $ashtray
+pinch gcc
+
 touch ~/.cache/whispix-bootstrap/26
 fi
 if [ ! -f ~/.cache/whispix-bootstrap/27 ]; then
 echo
-echo "STAGE 27 - Edit /etc/profile"
+echo "STAGE 27 - gettext"
 echo
 
-echo "You will now be sent to edit /etc/profile to add your compile flag variables"
-echo "Add lines that export your desired values for MAKEFLAGS, CFLAGS, CXXFLAGS, or any other variables you want set in your new system."
-read -rp "Press any key to continue..."
-
-if command -v nano >/dev/null 2>&1; then
-        EDITOR=nano
-elif command -v vim >/dev/null 2>&1; then
-        EDITOR=vim
-elif command -v nvim >/dev/null 2>&1; then
-        EDITOR=nvim
-elif command -v emacs >/dev/null 2>&1; then
-        EDITOR=emacs
-elif command -v vi >/dev/null 2>&1; then
-        EDITOR=vi
-fi
-
-EDITOR $DRAG_ROOT/etc/profile
-
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+cd $ashtray/gettext/src/gettext*/
+./configure --disable-shared
+make
+cp gettext-tools/src/{msgfmt,msgmerge,xgettext} /usr/bin
+"
 
 touch ~/.cache/whispix-bootstrap/27
 fi
 if [ ! -f ~/.cache/whispix-bootstrap/28 ]; then
 echo
-echo "STAGE 28 - gettext"
+echo "STAGE 28 - bison"
 echo
 
 tmpfsmount
-chroot $DRAG_ROOT /bin/bash -c << 'EOF'
+chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
-cd $ashtray/gettext/src/gettext*/
-./configure --disable-shared
+cd $ashtray/bison/src/bison*/
+./configure --prefix=/usr
 make
-mkdir -p $ashtray/gettext/pkg/usr/bin
-cp gettext-tools/src/{msgfmt,msgmerge,xgettext} $ashtray/gettext/pkg/usr/bin
-touch $ashtray/gettext/.rolled
-smoke gettext
-EOF
+make install
+"
 
 touch ~/.cache/whispix-bootstrap/28
 fi
 if [ ! -f ~/.cache/whispix-bootstrap/29 ]; then
 echo
-echo "STAGE 29 - bison"
+echo "STAGE 29 - perl"
 echo
 
 tmpfsmount
-chroot $DRAG_ROOT /bin/bash -c << 'EOF'
-source /etc/profile
-cd $ashtray/bison/src/bison*/
-./configure --prefix=/usr
-make
-make DESTDIR=$ashtray/bison/pkg install
-touch $ashtray/bison/.rolled
-smoke bison
-EOF
-
-touch ~/.cache/whispix-bootstrap/29
-fi
-if [ ! -f ~/.cache/whispix-bootstrap/30 ]; then
-echo
-echo "STAGE 30 - perl"
-echo
-
-tmpfsmount
-chroot $DRAG_ROOT /bin/bash -c << 'EOF'
+chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
 cd $ashtray/perl/src/perl*/
 sh Configure -des \
@@ -1029,59 +1093,58 @@ sh Configure -des \
 	-D vendorprefix=/usr \
 	-D useshrplib
 make
-make DESTDIR=$ashtray/perl/pkg install
-touch $ashtray/perl/.rolled
-smoke perl
-EOF
+make install
+"
+
+touch ~/.cache/whispix-bootstrap/29
+fi
+if [ ! -f ~/.cache/whispix-bootstrap/30 ]; then
+echo
+echo "STAGE 30 - python"
+echo
+
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+cd $ashtray/python/src/Python*/
+./configure --prefix=/usr --enable-shared --without-ensurepip
+make
+make install
+"
 
 touch ~/.cache/whispix-bootstrap/30
 fi
 if [ ! -f ~/.cache/whispix-bootstrap/31 ]; then
 echo
-echo "STAGE 31 - python"
+echo "STAGE 31 - texinfo"
 echo
 
 tmpfsmount
-chroot $DRAG_ROOT /bin/bash -c << 'EOF'
+chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
-cd $ashtray/python/src/python*/
-./configure --prefix=/usr --enable-shared --without-ensurepip
+cd $ashtray/texinfo/src/texinfo*/
+./configure --prefix=/usr
 make
-make DESTDIR=$ashtray/python/pkg install
-touch $ashtray/python/.rolled
-smoke python
-EOF
+make install
+"
 
 touch ~/.cache/whispix-bootstrap/31
 fi
 if [ ! -f ~/.cache/whispix-bootstrap/32 ]; then
 echo
-echo "STAGE 32 - texinfo"
+echo "STAGE 32 util-linux"
 echo
+
+(source ~/.cache/drag/stash/util-linux/PKGBUILD
+cd $ashtray/util-linux/src
+wget -nc https://kernel.org/pub/linux/utils/util-linux/v${pkgver%.*}/util-linux-$pkgver.tar.xz
+tar xJf util-linux-$pkgver.tar.xz)
 
 tmpfsmount
-chroot $DRAG_ROOT /bin/bash -c << 'EOF'
+chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
-cd $ashtray/texinfo/src/texinfo*/
-./configure --prefix=/usr
-make
-make DESTDIR=$ashtray/texinfo/pkg install
-touch $ashtray/texinfo/.rolled
-smoke texinfo
-EOF
-
-touch ~/.cache/whispix-bootstrap/32
-fi
-if [ ! -f ~/.cache/whispix-bootstrap/33 ]; then
-echo
-echo "STAGE 33 util-linux"
-echo
-
-tmpfsmount
-chroot $DRAG_ROOT /bin/bash -c << 'EOF'
-source /etc/profile
-cd $ashtray/util-linux/src/util-linux*/
-./configure --libdir=/usrlib \
+cd $ashtray/util-linux/src/util-linux-*/
+./configure --libdir=/usr/lib \
 	--runstatedir=/run \
 	--disable-chfn-chsh \
 	--disable-login \
@@ -1094,47 +1157,35 @@ cd $ashtray/util-linux/src/util-linux*/
 	--disable-liblastlog2 \
 	--without-python
 make
-make DESTDIR=$ashtray/util-linux/pkg install
-touch $ashtray/util-linux/.rolled
-smoke util-linux
-EOF
+make install
+"
 
-touch ~/.cache/whispix-bootstrap/33
+rm -rf $ashtray/util-linux/src/util-linux-*/
+
+touch ~/.cache/whispix-bootstrap/32
 fi
-if [ ! -f ~/.cache/whispix-bootstrap/34 ]; then
+if [ ! -f ~/.cache/whispix-bootstrap/33 ]; then
 echo
-echo "STAGE 34 - hotbox"
+echo "STAGE 33 - Hotbox"
 echo
+
+echo "Note:"
+echo "You may find yourself needing to edit and correct some of the PKGBUILD instructions on this stage."
+echo "To edit PKGBUILDs, use the snoop command."
+echo
+
+rm -rf /mnt/whispix/tools
+
+echo "smoke ${cigs[@]}" > /mnt/whispix/root/.cache/hotbox
+chmod +x /mnt/whispix/root/.cache/hotbox
 
 tmpfsmount
-chroot $DRAG_ROOT /bin/env -i cigs=$cigs /bin/bash -c << 'EOF'
+chroot $DRAG_ROOT /bin/env -i cigs=$cigs /bin/bash -c "
 source /etc/profile
-smoke ${cigs[@]}
-EOF
+~/.cache/hotbox
+"
 
-touch ~/.cache/whispix-bootstrap/34
-fi
-if [ ! -f ~/.cache/whispix-bootstrap/35 ]; then
-echo
-echo "STAGE 35 - Finishing touches"
-echo
-
-cat > $DRAG_ROOT/etc/nsswitch.conf << "EOF"
-passwd: files
-group: files
-shadow: files
-
-hosts: files dns
-networks: files
-
-protocols: files
-services: files
-ethers: files
-rpc: files
-EOF
-echo "/usr/local/lib" > $DRAG_ROOT/etc/ld.so.conf
-
-touch ~/.cache/whispix-bootstrap/35
+touch ~/.cache/whispix-bootstrap/33
 fi
 
 echo
