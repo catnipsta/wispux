@@ -17,34 +17,34 @@
 		<main>
 			<b>The Drag Package Manager</b>
 			<p class="about">
-Whispix is a minimal, independent, source-based Linux distribution that uses the drag package manager.
-Drag is written in Bash to deliver a fast and customizable set of tools.
-It works by fetching the PKGBUILDs from Arch Linux's repositories and the AUR to
-maximize package support. Drag encourages users to edit PKGBUILDs, resulting
-in a more refined and tailored system. It features file tracking for installed packages, allowing for 
-a clean removal of packages. Unlike most package managers, drag does not automatically resolve dependencies, though
-it does list the recommended dependencies provided by Arch.
+Whispix is a minimal, independent, source-based Linux distribution that uses drag to manage it's packages.
+Drag is written in Bash with the purpose of delivering a fast and customizable set of tools.
+It fetches PKGBUILDs from Arch Linux's repositories and the AUR to
+maximize package support. Drag makes editing PKGBUILDs easy in order to put the user in control of their system.
+Drag features file tracking for installed packages, allowing for 
+a clean removal process. Unlike most package managers, drag does not support automatic dependency resolution, though
+it does possess the ability list the recommended dependencies found in the PKGBUILDs.
 			</p>
 			<b>System Requirements</b>
 			<p class="about">
 Because Whispix is a source distribution that is built from scratch, you must be comfortable with your computer specifications.
 Building Whispix on old hardware could take quite some time due to large packages like glibc and gcc.
 Whispix does not rely on a singular processor type, making Whispix a universal distribution.
-The bootstrap follows a similar path to LFS. The default bootstrap compiles glibc and other gnu tools, but you are free
-to edit the bootstrap and make it your own. Any help and suggestions for Whispix are greatly appreciated.
+The bootstrap follows a similar path to LFS. This also means that by default it compiles glibc and other gnu tools. If you are opposed
+to this or any other aspect of the bootstrap, feel free to edit it and make it your own. Any help and suggestions for Whispix are greatly appreciated.
 </p>
 			<b>Initial Install</b>
 			<p class="about">
-Whispix compiles every package from scratch very similarly to LFS. Though thankfully, unlike LFS, a lot of it
-is automated by the bootstrap. 
-The expected result of an initial install, unless customized further, would be a very
+Whispix compiles every package from scratch very similarly to LFS. Though thankfully, unlike LFS, much of it
+is automated by the bootstrap.
+The expected product of an initial install, unless customized further, would be a very
 basic Linux system that doesn't even include a traditional init system. The standard Whispix
 installation provides a minimal shell script at /sbin/init to start necessary services.
 While surprising to some, this shell script is still very capable of running a
 real desktop environment. Currently, I am writing this using my daily system (running Whispix)
 configured to run modern applications such as Firefox, OBS, GIMP, Blender and others.
 			</p>
-			<b>Comparing</b>
+			<b>Comparisons</b>
 			<p class="about">
 Though I haven't given my package manager a true benchmark to compare to other
 distributions, from personal experience I can say as a former Gentoo user that my drag package

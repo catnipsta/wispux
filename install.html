@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Whispix Linux</title>
+		<title>Install - Whispix Linux</title>
 		<link rel="icon" href="/favicon.ico" type="image/x-icon">
 		<link rel="stylesheet" href="style.css">
 	</head>
@@ -17,34 +17,46 @@
 		<main>
 			<b>1. Preparations and Requirements</b>
 			<p class="instructions">
-			This is just a simple guide to get your system up and running,
+			This is a simple guide to get your system up and running,
 			you are free to customize Whispix and your installation process however you'd like.
-			This guide is directed towards 64 bit systems.
-			There is no official method as of this moment to install
-			Whispix on other architectures, though that isn't to say it's impossible.
-			A universal installation guide is in the works, but if you're desperate,
-			you could experiment with a modified bootstrap and the drag package managemer
-			to install necessary packages manually from outside and inside the chroot.
-			Now for 64 bit users, you must be booted into a host disk that is different
+			To begin, you must be booted into a host disk that is different
 			from your target disk. The most ideal way to achieve this is to flash
 			a live linux iso to a usb, cd, or other bootable device. Recommended
-			live distro images are Void, Arch, Artix, Gentoo, and CRUX. You may download
+			live distro images as of this moment are Void and Alpine. Download
 			one of these images or another minimal live iso and flash it to a usb or cd
-			that doesn't have any important data saved to it. FLASHING A USB OR CD
-			WILL WIPE ALL DATA! Below is an example of flashing a void iso to the device at /dev/sdb.
+			that doesn't have any important data saved to it. WARNING: FLASHING A MEDIA DEVICE
+			WILL WIPE ALL ITS DATA! Below is an example of flashing a void iso to the device at /dev/sdb.
 			</p>
 			<code>
 			dd if=void.iso of=/dev/sdb bs=4M status=progress
 			</code>
 			<p class="instructions">
-			This installation process also requires an interent connection.
-			Once booted into the live iso on a system with the target drive still attached and an
-			active internet connection, you may move on to the following steps.
+			This installation process requires an internet connection as well as
+			certain packages to be installed on your host system.
+			Keep in mind that if you are building a multilib system, you will also be required to have
+			certain 32 bit libraries installed.
+			Please make sure that at least the following are installed:
 			</p>
+			<pre><code>wget
+git
+openssl
+tar
+gzip
+xz
+zstd
+lzip
+unzip
+gcc
+make
+bison
+flex
+texinfo
+patch
+</code></pre>
 			<b>2. Partitioning and Formatting</b>
 			<p class="instructions">
-			Note: MAKE SURE YOU FORMAT AND PARTITION THE CORRECT DISK AS ALL DATA WILL BE WIPED!
-			Depending on your type of system and expectations, you will be expected to partition and format differently.
+			WARNING: MAKE SURE YOU FORMAT AND PARTITION THE CORRECT DISK AS ALL DATA WILL BE WIPED!
+			Depending on your system and personal expectations, you will be expected to partition and format your target disk differently.
 			On a BIOS system, it is advised to use MBR as your partition scheme, while on a newer UEFI system, it is more
 			common to use GPT. UEFI systems will also expect an EFI partition which should be formatted as FAT32 for best
 			compatibility. In the end, you are expected to at least have a root partition, optionally a swap partition, and
@@ -113,211 +125,142 @@ mount --mkdir /dev/sda1 /mnt/whispix/boot/efi
 swapon /dev/sda2</code></pre>
 			<b>4. The Whispix Bootstrap</b>
 			<p class="instructions">
-			Whispix uses a shell script to create it's initial system.
-			Most of the installed packages will be prebuilt binaries from Arch Linux's repos.
-			Because of this, it is highly recommended to rebuild all packages after or towards the end of the install.
-			Download the script and make executable:
+			Whispix uses a shell script to automate most of it's install process.
+			If everything is set up correctly, the only stage expected to prompt the user for manual intervention is the final stage, 33.
+			Don't be intimidated by this large number though, as said, if your host system is set up correctly, has the required packages, 
+			and you've followed the previous steps correctly, you shouldn't have anything to worry about.
 			</p>
-			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap-x86_64.sh
-chmod +x whispix-bootstrap-x86_64.sh</code></pre>
 			<p class="instructions">
-			If paranoid (don't kill me hardcore UNIX fanboys), you may download the sha256 sum of the bootstrap and
-			verify the bootstrap as shown below.
+			There are two versions of the bootstrap, multilib and nomultilib, the difference being whether you can run 32 bit on your 64 bit system or not.
+			Unless you are on a 64 bit system where you expect to run 32 bit binaries or libraries, you should choose nomultilib.
+			An example of of system needing multilib would be one expected to run Wine or Proton.
+			If you choose nomultilib, you will not be able to switch to multilib without reinstalling from scratch.
+			On the other hand, building a nomultilib toolchain on a multilib system is rather simple.
+			Now download your choice of script and make it executable:
 			</p>
-			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap-x86_64-sha256
-cat whispix-bootstrap-x86_64-sha256
-sha256sum whispix-bootstrap-x86_64.sh</code></pre>
+			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap-nomultilib.sh
+chmod +x whispix-bootstrap-nomultilib.sh</code></pre>
 			<p class="instructions">
-			Before running the script, you must install the drag package manager as it is required by the bootstrap script.
+			If you are feeling paranoid, you may also download the sha256 sum of the bootstrap and
+			verify it as shown below.
 			</p>
-			<pre><code>git clone https://github.com/catnipsta/drag
-chmod +x drag/scripts/*
-cp drag/scripts/* /usr/bin/</code></pre>
+			<pre><code>wget https://raw.githubusercontent.com/catnipsta/whispix/refs/heads/main/whispix-bootstrap-nomultilib-sha256
+cat whispix-bootstrap-nomultilib-sha256
+sha256sum whispix-bootstrap-nomultilib.sh</code></pre>
 			<p class="instructions">
-			Since the bootstrap is a shell script, <b>it is recommended to review and edit it before running.</b>
-			You should at the very least review the list of packages that are going to be installed.
-			The variable cigs contains the list of packages which are to be installed using Arch's prebuilt binaries.
-			If you are uncomfortable with the text editor vi, please replace that package with one you are familiar with.
-			In order to run the bootstrap script and drag commands you will need the following packages
-			present on your host system:
+			The bootstrap contains a list of packages that will be installed to your new system.
+			One of these packages is vi, a text editor. If you are not comfortable with vi, please
+			edit the bootstrap and replace vi with one you are comfortable with. Please also ensure that this text editor
+			is also installed on your host system for reasons that will be made clear later.
 			</p>
-			<pre><code>wget
-git
-gnupg
-rsync
-tar
-xz
-zstd</code></pre>
 			<p class="instructions">
-			With the bootstrap edited to your likings, you may now run the bootstrap script
-			with your target mount point as the parameter.
+			Setting MAKEFLAGS enables your system to start multiple compile jobs at once.
+			This speeds up the process, though setting them too high will result in crashes.
+			You should set your job limit (the second number) to your total RAM in gigabytes divided
+			by 2. You can check your total RAM by running:
+			</p>
+			<code>free -h</code>
+			<p class="instructions">
+			On a system with 8 gigabytes of RAM, you would set your MAKEFLAGS like so:
+			</p>
+			<code>
+			export MAKEFLAGS="-j$(nproc) -l4"
+			</code>
+			<p class="instructions">
+			Now run the bootstrap, passing your mount point as a parameter.
 			</p>
 			<code>
 			./whispix-boostrap.sh /mnt/whispix
 			</code>
 			<p class="instructions">
-			If the bootstrap fails, you may re-run the script to try again.
+			STAGE 2 will ask you for your preferred Linux kernel, glibc, and GCC version.
+			If you can't decide, just press enter to select the default versions.
+			After that, the bootstrap should have no problem running until STAGE 33.
+			</p>
+			<b>5. STAGE 33</b>
+			<p class="instructions">
+			If you have ever performed or studied LFS, you can think of STAGE 33 like Chapter 8.
+			Unlike LFS, STAGE 33 is still semi-automated. I say semi-automated because it uses
+			Arch's PKGBUILDs for installing packages. Some packages will install without any
+			manual intervention, though many PKGBUILDs are going to require modification.
+			Each time a packge fails to compile, it will almost definitely be because of the PKGBUILD.
+			What better time to learn the drag package manager than now?
 			</p>
 			<p class="instructions">
-			Edit /mnt/whispix/etc/profile to set your compile flags for the new system.
-			If following the guide closely, the lines added should look very similar to what is shown below.
+			You can edit a package's PKGBUILD by running the command:
 			</p>
-			<pre><code>MAKEFLAGS="-j$(nproc)"
-CFLAGS="-march=native -O2 -pipe"
-CXXFLAGS="$CFLAGS"</code></pre>
+			<code>snoop</code>
 			<p class="instructions">
-			Before compiling the toolchain in the chroot, we must add the Linux kernel headers. You can download your
-			desired Linux kernel from kernel.org. <b>It is HIGHLY recommended to download a slightly older,
-			stable kernel version. This will render a much easier system to maintain.</b>
-			Below is an example of how you can download the Linux kernel 6.1.142, extract it, and install the kernel headers.
-			To run the make commands, you will need to have make and gcc installed on your host system.
-			You can verify the tarball's signature as well, though it's not required. Remember that you must be very careful to not
-			accidently click on the ads on kernel.org that tell you about hot singles in your area. THEY AREN'T REAL.
+			Many packages will fail due to trying to run certain patch or autoreconf
+			commands on a system at this stage. You can simply remove these lines. Other PKGBUILDs
+			will have complex configure options that aren't supported yet on your minimal system. To fix these,
+			remove or modify these options. Some packages fail because of tests. Remember that not all tests 
+			are expected to pass since this is in a chroot environment. To disable tests, just remove the whole check
+			function from a PKGBUILD.
 			</p>
-			<pre><code>cd /mnt/whispix/usr/src
-wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.142.tar.xz
-tar xJf linux-6.1.142.tar.xz
-rm linux-6.1.142.tar.xz
-cd linux-6.1.142
-make mrproper
-make headers
-make INSTALL_HDR_PATH=/mnt/whispix/usr headers_install</code></pre>
-			<b>5. Chroot</b>
 			<p class="instructions">
-			Before chrooting to our target mount point, it is necessary to mount some temporary filesystems.
+			I can't explain how you can patch every single PKGBUILD in this guide,
+			but I will give an example of how zlib's PKGBUILD should be fixed and why.
+			The first thing you may notice when editing zlib's PKGBUILD is that it contains a line with the command
+			autoreconf. That command doesn't exist on the system yet, so you must delete this
+			line. Because autoreconf doesn't run, the configure script for minizip doesn't get created, and
+			therefore it cannot be compiled. In order to stop minizip from compiling, we must
+			remove any lines that attempt to cd into minizip's directory, configure it, and make it.
+			Finally, minizip is still being attempted to package because of the line near the top that includes
+			minizip as the second pkgname. Remove the "minizip" from pkgname and zlib should compile cleanly.
 			</p>
-			<pre><code>mount -t proc /proc /mnt/whispix/proc
-mount -R /sys /mnt/whispix/sys
-mount --make-rslave /mnt/whispix/sys
-mount -R /dev /mnt/whispix/dev
-mount --make-rslave /mnt/whispix/dev
-mount -B /run /mnt/whispix/run
-mount --make-slave /mnt/whispix/run</code></pre>
+			<b>6. Chroot</b>
 			<p class="instructions">
-			With the necessary filesystems mounted, we may now enter the chroot environment.
-			</p>
-			<pre><code>chroot /mnt/whispix /bin/bash
-source /etc/profile
-export PS1="(chroot) ${PS1}"</code></pre>
-			<p class="instructions">
-			Without DNS servers set, we won't be able to access the web using domain names.
-			To fix this we can add DNS servers to /etc/resolv.conf.
-			An example of what this file would look like if you chose to use Cloudflare's DNS servers is shown below.
-			</p>
-			<pre><code>nameserver 1.1.1.1
-nameserver 1.0.0.1</code></pre>
-			<b>6. Recompiling the toolchain</b>
-			<p class="instructions">
-			Though we aren't doing a full LFS-style multi-stage bootstrap, it's still recommended to recompile the
-			toolchain to ensure that it's only linked to libraries inside of the chroot. We will start with binutils.
-			Remember that it is going to prompt you to edit the PKGBUILD first.
-			</p>
-			<code>
-			roll binutils
-			</code>
-			<p class="instructions">
-			Now that you have created the new binaries for binutils, we must uninstall the old binutils and install
-			the new one.
-			</p>
-			<pre><code>stub binutils
-smoke binutils
-</code></pre>
-			<p class="instructions">
-			Now we must rebuild glibc which will require us to leave the chroot to replace the old glibc with the new one.
-			Drag makes this easier than it may sound. First, roll the new glibc.
-			<b>Remember: It is HIGHLY recommended to change the source of glibc
-			to download an older, more stable version. This will render a much easier system to maintain.</b>
-			</p>
-			<code>
-			roll glibc
-			</code>
-			<p class="instructions">
-			You must exit the chroot and make use of the DRAG_ROOT variable to modify the target system from outside
-			the chroot.
-			</p>
-			<pre><code>exit
-export DRAG_ROOT=/mnt/whispix
-stub glibc
-smoke glibc
-unset DRAG_ROOT
-</code></pre>
-			<p class="instructions">
-			If executed successfully, You may now re-enter the chroot.
+			Enter your new system.
 			</p>
 			<pre><code>chroot /mnt/whispix /bin/bash
 source /etc/profile
 export PS1="(chroot) ${PS1}"</code></pre>
 			<p class="instructions">
-			With glibc, we must generate and set our locales as well as create certain configuration files.
-			The most common and recommended locales to generate are C.UTF-8 ttys and en_US.UTF-8.
+			Your system won't work properly if you don't generate and set your locales.
+			The most common and recommended locales to generate are C.UTF-8 and en_US.UTF-8.
+			C.UTF-8 is used for compatibility with ttys.
+			Below is an example of how the locales mentioned above can be generated and set.
 			</p>
 			<pre><code>localedef -i C -f UTF-8 C.UTF-8
 localedef -i en_US -f UTF-8 en_US.UTF-8
 echo "LANG=en_US.UTF-8" > /etc/locale.conf</code></pre>
 			<p class="instructions">
-			It is highly recommended to create /etc/nsswitch.conf for modern systems.
-			</p>
-			<pre><code>cat > /etc/nsswitch.conf << "EOF"
-passwd: files
-group: files
-shadow: files
-
-hosts: files dns
-networks: files
-
-protocols: files
-services: files
-ethers: files
-rpc: files
-EOF</code></pre>
-			<p class="instructions">
-			To tell the dynamic loader to look in directories besides /usr/lib, we must create /etc/ld.so.conf.
-			You can add /usr/local/lib to the directories that the dynamic loader looks as seen below.
-			</p>
-			<code>echo "/usr/local/lib" > /etc/ld.so.conf</code>
-			<p class="instructions">
-			Install tzdata using the drag package manager.
+			To set your timezone, tzdata needs to be installed.
 			</p>
 			<code>smoke tzdata</code>
 			<p class="instructions">
-			Set your time zone by setting a symlink to /etc/localtime.
+			Set your time zone by creating a symlink at /etc/localtime pointing to your timezone.
 			Replace the ??? in the command below with your corresponding time zone. For example: US/Pacific.
 			</p>
-			<code>ln -sf /usr/share/zoneinfo/??? /etc/localtime</code>
-			<p class="instructions">
-			Recompile gcc, uninstall the old one, and install the new one.
-			<b>Remember: It is HIGHLY recommended to change the source of gcc
-			to download an older, more stable version. This will render a much easier system to maintain.</b>
-			</p>
-			<pre><code>roll gcc
-stub gcc
-smoke gcc</code></pre>
+			<pre><code>ln -sf /usr/share/zoneinfo/??? /etc/localtime</code></pre>
 			<b>7. Compiling the Kernel</b>
 			<p class="instructions">
-			Everyone is going to compile their kernel differently depending on their hardware, needs, and preferences.
+			Everyone is going to compile their kernel differently depending on their hardware, and personal preferences.
+			If you are building a multilib system, you must enable IA32 Emulation.
 			Some people prefer to use an initramfs to load kernel modules at the init stage, while others compile everything
-			they need directly into their kernel. This guide will not be going over how you can setup initramfs, though you
-			can find some really good documentation on initramfs from sources like <a href="https://gentoo.org">gentoo.org</a>.
-			If you do end up setting an initramfs, remember that you will have to setup its startup in /sbin/init.
+			they need directly into their kernel. This guide will not be discussing the setup initramfs, though you
+			can find some documentation on initramfs from sources like <a href="https://gentoo.org">gentoo.org</a>.
+			If you do end up using an initramfs, remember that you will have to setup it up in your boot loader.
 			</p>
 			<p class="instructions">
 			To configure your kernel, you can either manually edit /usr/src/linux-x.x.x/.config or you can use a tool like
-			menuconfig or nconfig. You can also set the variable EXTRAVERSION in the Makefile to "-whispix" to generate a
-			kernel with the ending "-whispix".
+			menuconfig or nconfig. You can set the variable EXTRAVERSION found in the Makefile to "-whispix" to generate a
+			kernel with the ending "-whispix". 
 			Below is an example of how you can configure, compile, and install the Linux kernel 6.1.142.
 			</p>
 			<pre><code>cd /usr/src/linux-6.1.142
+make mrproper
 make nconfig
 make
 make install</code></pre>
 			<b>8. User and password setup</b>
 			<p class="instructions">
 			Setting up users and passwords is rather simple compared to the rest of this guide.
-			You can optionally set a password for root as so:
+			To set passwords, use the passwd command, passing the user as a parameter.
+			If you don't pass a user as a parameter, it will default to root.
+			Setting a passwod for root isn't required, but it is helpful.
 			</p>
-			<code>
-			passwd
-			</code>
 			<p class="instructions">
 			You can add a user named "whispix-user" and create their home directory like this:
 			</p>
@@ -325,15 +268,21 @@ make install</code></pre>
 			useradd -m whispix-user
 			</code>
 			<p class="instructions">
-			You can also add whispix-user to the wheel group if you'd like.
+			You can also add whispix-user to groups using the usermod command.
 			</p>
 			<code>
 			usermod -aG wheel whispix-user
 			</code>
+			<p class="instructions">
+			Set whispix-user's password.
+			</p>
+			<code>
+			passwd whispix-user
+			</code>
 			</br>
 			<b>9. Bootloader Setup</b>
 			<p class="instructions">
-			There are quite a few different bootloaders to choose from though, the most common and featured one is GRUB.
+			There are quite a few many bootloaders, but the most common and featured one is GRUB.
 			You can install GRUB using the drag package manager.
 			</p>
 			<code>
@@ -359,16 +308,10 @@ grub-mkconfig /boot/grub/grub.cfg</code></pre>
 			</p>
 			<pre><code>grub-install --target=x86_64-efi --efi-directory=/boot/efi
 grub-mkconfig /boot/grub/grub.cfg</code></pre>
-			<b>10. The Finishing Touches</b>
+			<b>10. Reboot</b>
 			<p class="instructions">
-			At this point of the installation, it is recommended to rebuild the prebuilt Arch Linux binaries.
-			This can be done similarly to how the packages in step 6 were rebuilt.
-			You can rebuild all your packages by running:
-			</p>
-			<code>smoke $(drags)</code>
-			<p class="instructions">
-			Some people may also choose at this point to install and set up certain packages such as eudev and sudo.
-			Unless you have cleared the .cache/stash folder of the root user, you should already have a PKGBUILD to assist you with eudev.
+			Some people may choose at this point to install and set up certain packages such as eudev and sudo.
+			Unless you have cleared the root user's stash, you should already have a PKGBUILD to assist you with eudev.
 			Unlike other distros, Whispix does not have an init system unless you install one yourself. 
 			It does however have a basic shell script at /sbin/init that you can add your startup services to.
 			</p>

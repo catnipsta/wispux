@@ -368,9 +368,17 @@ echo
 
 rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
 
-read -p "What Linux kernel version do you wish to use? (eg. 6.12.40) " KRNLVER
-read -p "Glibc version? (eg. 2.41) " GLIBCVER
-read -p "GCC version?   (eg. 14.2.0) " GCCVER
+DKRNLVER=6.12.40
+DGLIBCVER=2.41
+DGCCVER=14.2.0
+
+read -p "What Linux kernel version do you wish to use? (default: $DKRNLVER) " KRNLVER
+read -p "Glibc version? (default: $DGLIBCVER) " GLIBCVER
+read -p "GCC version?   (default: $DGCCVER) " GCCVER
+
+[[ KRNLVER=="" ]] && KRNLVER=$DKRNLVER
+[[ GLIBCVER=="" ]] && GLIBCVER=$DGLIBCVER
+[[ GCCVER=="" ]] && GCCVER=$DGCCVER
 
 wget --spider https://ftp.gnu.org/gnu/glibc/glibc-$GLIBCVER.tar.xz
 wget --spider https://ftp.gnu.org/gnu/gcc/gcc-$GCCVER/gcc-$GCCVER.tar.xz
@@ -408,7 +416,6 @@ source=("https://ftp.gnu.org/gnu/glibc/glibc-$pkgver.tar.xz")
 build() {
 cd glibc-$pkgver
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -423,7 +430,7 @@ make
 }
 
 package() {
-cd glibc-$pkgver
+cd glibc-$pkgver/build
 
 make DESTDIR=$pkgdir install
 
@@ -440,7 +447,6 @@ echo "ethers: files" >> $pkgdir/etc/nsswitch.conf
 echo "rpc: files" >> $pkgdir/etc/nsswitch.conf
 echo "/usr/local/lib" > $pkgdir/etc/ld.so.conf
 }
-
 EOF
 
 cat > ~/.cache/drag/stash/gcc/PKGBUILD << EOF
@@ -454,11 +460,10 @@ source=("https://ftp.gnu.org/gnu/gcc/gcc-$pkgver/gcc-$pkgver.tar.xz")
 build() {
 cd gcc-$pkgver
 
-rm -rf build
 mkdir -p build
 cd build
 
-./configure --prefix=/usr \
+../configure --prefix=/usr \
 	LD=ld \
 	--enable-languages=c,c++ \
 	--enable-default-pie \
@@ -472,9 +477,46 @@ make
 }
 
 package() {
-cd gcc-$pkgver
+cd gcc-$pkgver/build
 
 make DESTDIR=$pkgdir install
+}
+EOF
+
+cat > ~/.cache/drag/stash/binutils/PKGBUILD << EOF
+pkgname=binutils
+pkgver=$(date +%Y%m%d)
+
+EOF
+
+cat >> ~/.cache/drag/stash/binutils/PKGBUILD << "EOF"
+source=("git+https://sourceware.org/git/binutils-gdb.git")
+
+build() {
+cd binutils-gdb/
+
+mkdir -p build
+cd build
+
+../configure --prefix=/usr       \
+             --sysconfdir=/etc   \
+             --enable-ld=default \
+             --enable-plugins    \
+             --enable-shared     \
+             --disable-werror    \
+             --enable-64-bit-bfd \
+             --enable-new-dtags  \
+             --with-system-zlib  \
+	     --disable-gdb       \
+	     --disable-gdbserver \
+             --enable-default-hash-style=gnu
+make tooldir=/usr
+}
+
+package() {
+cd binutils-gdb/build
+
+make DESTDIR=$pkgdir tooldir=/usr install
 }
 EOF
 
@@ -495,6 +537,125 @@ make DESTDIR=$pkgdir install
 )
 EOF
 
+sed -i 's/pkgver=.*/pkgver=8.6.16/' ~/.cache/drag/stash/tcl/PKGBUILD
+sed -i 's/pkgname=.*/pkgname=libxcrypt/' ~/.cache/drag/stash/libxcrypt/PKGBUILD
+
+(source ~/.cache/drag/stash/xz/PKGBUILD
+cat > ~/.cache/drag/stash/xz/PKGBUILD << EOF
+pkgname=xz
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/xz/PKGBUILD << "EOF"
+build(){
+cd xz
+./configure --prefix=/usr --disable-static
+make
+}
+package(){
+cd xz
+make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/zstd/PKGBUILD
+cat > ~/.cache/drag/stash/zstd/PKGBUILD << EOF
+pkgname=zstd
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/zstd/PKGBUILD << "EOF"
+build(){
+cd zstd-$pkgver
+make prefix=/usr
+}
+package(){
+cd zstd-$pkgver
+make DESTDIR=$pkgdir prefix=/usr install
+}
+EOF
+
+(source ~/.cache/drag/stash/pkgconf/PKGBUILD
+cat > ~/.cache/drag/stash/pkgconf/PKGBUILD << EOF
+pkgname=pkgconf
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/pkgconf/PKGBUILD << "EOF"
+build(){
+cd pkgconf
+./configure --prefix=/usr --disable-static
+make
+}
+package(){
+cd pkgconf
+make DESTDIR=$pkgdir install
+ln -sv pkgconf $pkgdir/usr/bin/pkg-config
+}
+EOF
+
+#(source ~/.cache/drag/stash/ncurses/PKGBUILD
+#cat > ~/.cache/drag/stash/ncurses/PKGBUILD << EOF
+#pkgname=ncurses
+#pkgver=$pkgver
+#source=(${source[@]})
+#EOF
+#)
+#cat >> ~/.cache/drag/stash/ncurses/PKGBUILD << "EOF"
+#build(){
+#cd ncurses
+#./configure --prefix=/usr           \
+#            --mandir=/usr/share/man \
+#            --with-shared           \
+#            --without-debug         \
+#            --without-normal        \
+#            --with-cxx-shared       \
+#            --enable-pc-files       \
+#            --with-pkg-config-libdir=/usr/lib/pkgconfig
+#make
+#}
+#package(){
+#cd ncurses
+#make DESTDIR=$PWD/dest install
+#
+#install -vm755 dest/usr/lib/libncursesw.so.$pkgver /usr/lib
+#rm -v  dest/usr/lib/libncursesw.so.$pkgver
+#sed -e 's/^#if.*XOPEN.*$/#if 1/' \
+#    -i dest/usr/include/curses.h
+#cp -av dest/* /
+#for lib in ncurses form panel menu ; do
+#    ln -sfv lib${lib}w.so /usr/lib/lib${lib}.so
+#    ln -sfv ${lib}w.pc    /usr/lib/pkgconfig/${lib}.pc
+#done
+#ln -sfv libncursesw.so /usr/lib/libcurses.so
+#
+#mkdir -p $pkgdir/usr/share/doc/
+#cp -v -R doc -T $pkgdir/usr/share/doc/ncurses-$pkgver
+#}
+#EOF
+
+(source ~/.cache/drag/stash/expat/PKGBUILD
+cat > ~/.cache/drag/stash/expat/PKGBUILD << EOF
+pkgname=expat
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/expat/PKGBUILD << "EOF"
+build(){
+cd expat
+./configure --prefix=/usr --disable-static
+make
+}
+package(){
+cd expat
+make DESTDIR=$pkgdir install
+}
+EOF
+
 touch ~/.cache/whispix-bootstrap/3
 fi
 if [ ! -f ~/.cache/whispix-bootstrap/4 ]; then
@@ -511,7 +672,6 @@ grep
 gzip
 patch
 xz
-zlib
 flex
 pkgconf
 attr
@@ -526,58 +686,84 @@ shadow
 gdbm
 check
 wget
+tcl
 )
+
+for i in ${cigars[@]}; do
+	mkdir -p $ashtray/$i/src
+done
 
 (cigars2=()
 source ~/.cache/drag/stash/coreutils/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/coreutils/coreutils-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/coreutils/ver
 source ~/.cache/drag/stash/diffutils/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/diffutils/diffutils-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/diffutils/ver
 source ~/.cache/drag/stash/file/PKGBUILD
 cigars2+=(https://astron.com/pub/file/file-$pkgver.tar.gz)
+echo "$pkgver" > $ashtray/file/ver
 source ~/.cache/drag/stash/findutils/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/findutils/findutils-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/findutils/ver
 source ~/.cache/drag/stash/grep/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/grep/grep-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/grep/ver
 source ~/.cache/drag/stash/gzip/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/gzip/gzip-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/gzip/ver
 source ~/.cache/drag/stash/patch/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/patch/patch-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/patch/ver
 source ~/.cache/drag/stash/xz/PKGBUILD
 cigars2+=(https://github.com//tukaani-project/xz/releases/download/v$pkgver/xz-$pkgver.tar.xz)
-source ~/.cache/drag/stash/zlib/PKGBUILD
-cigars2+=(https://zlib.net/fossils/zlib-$pkgver.tar.gz)
+echo "$pkgver" > $ashtray/xz/ver
 source ~/.cache/drag/stash/flex/PKGBUILD
 cigars2+=(https://github.com/westes/flex/releases/download/v$pkgver/flex-$pkgver.tar.gz)
+echo "$pkgver" > $ashtray/flex/ver
 source ~/.cache/drag/stash/pkgconf/PKGBUILD
 cigars2+=(https://distfiles.ariadne.space/pkgconf/pkgconf-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/pkgconf/ver
 source ~/.cache/drag/stash/attr/PKGBUILD
 cigars2+=(https://download.savannah.gnu.org/releases/attr/attr-$pkgver.tar.gz)
+echo "$pkgver" > $ashtray/attr/ver
 source ~/.cache/drag/stash/acl/PKGBUILD
 cigars2+=(https://download.savannah.gnu.org/releases/acl/acl-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/acl/ver
 source ~/.cache/drag/stash/psmisc/PKGBUILD
 cigars2+=(https://sourceforge.net/projects/psmisc/files/psmisc/psmisc-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/psmisc/ver
 source ~/.cache/drag/stash/libtool/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/libtool/libtool-${pkgver%%+*}.tar.xz)
+echo "$pkgver" > $ashtray/libtool/ver
 source ~/.cache/drag/stash/expat/PKGBUILD
 cigars2+=(https://prdownloads.sourceforge.net/expat/expat-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/expat/ver
 source ~/.cache/drag/stash/inetutils/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/inetutils/inetutils-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/inetutils/ver
 source ~/.cache/drag/stash/automake/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/automake/automake-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/automake/ver
 source ~/.cache/drag/stash/groff/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/groff/groff-$pkgver.tar.gz)
+echo "$pkgver" > $ashtray/groff/ver
 source ~/.cache/drag/stash/shadow/PKGBUILD
 cigars2+=(https://github.com/shadow-maint/shadow/releases/download/$pkgver/shadow-$pkgver.tar.xz)
+echo "$pkgver" > $ashtray/shadow/ver
 source ~/.cache/drag/stash/gdbm/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/gdbm/gdbm-$pkgver.tar.gz)
+echo "$pkgver" > $ashtray/gdbm/ver
 source ~/.cache/drag/stash/check/PKGBUILD
 cigars2+=(https://github.com/libcheck/check/releases/download/$pkgver/check-$pkgver.tar.gz)
+echo "$pkgver" > $ashtray/check/ver
 source ~/.cache/drag/stash/wget/PKGBUILD
 cigars2+=(https://ftp.gnu.org/gnu/wget/wget-$pkgver.tar.gz)
+echo "$pkgver" > $ashtray/wget/ver
+cigars2+=(https://downloads.sourceforge.net/tcl/tcl8.6.16-src.tar.gz)
+echo "8.6.16" > $ashtray/tcl/ver
 
 for ((i=0; i<${#cigars[@]}; i++)); do
-	mkdir -p $ashtray/${cigars[$i]}/src
 	cd $ashtray/${cigars[$i]}/src
 	wget -nc ${cigars2[$i]}
 	for file in *; do
@@ -586,6 +772,7 @@ for ((i=0; i<${#cigars[@]}; i++)); do
 		elif [ $file == *.tar.gz ]; then
 			tar xzf $file || (rm $file && echo "Please re-run the script.")
 		fi
+		[[ ${cigars[$i]} == tcl ]] || (rm -f ${file%-*} && ln -sf ${file%.tar*} ${file%-*})
 	done
 done)
 
@@ -604,7 +791,6 @@ echo
 
 cd $ashtray/binutils/src/binutils*/
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -639,7 +825,6 @@ mv mpfr*/ mpfr
 mv gmp*/ gmp
 mv mpc*/ mpc
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -690,7 +875,6 @@ echo
 
 cd $ashtray/glibc/src/glibc*/
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -716,7 +900,6 @@ echo
 
 cd $ashtray/gcc/src/gcc*/
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -801,9 +984,6 @@ echo "STAGE 13 - coreutils"
 echo
 
 cd $ashtray/coreutils/src/coreutils/
-
-[ -d $ashtray/pkgconf/src/pkgconf ] || pinch pkgconf
-cp $ashtray/pkgconf/src/pkgconf*/pkg.m4 /usr/share/aclocal/pkg.m4
 
 ./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess) --enable-install-program=hostname --enable-no-install-program=kill,uptime
 make
@@ -972,7 +1152,6 @@ echo
 cd $ashtray/binutils/src/binutils*/
 sed '6031s/$add_dir//' -i ltmain.sh
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -1015,7 +1194,6 @@ mv gmp*/ gmp
 mv mpc*/ mpc
 sed '/thread_header =/s/@.*@/gthr-posix.h/' -i libgcc/Makefile.in libstdc++-v3/include/Makefile.in
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -1176,11 +1354,20 @@ echo
 
 rm -rf /mnt/whispix/tools
 
+if (( ${GCCVER%%.*} >= 14 )) && [ ! -f $ashtray/expect/src/patched ]; then
+	cd $ashtray/expect/src
+	wget -nc https://www.linuxfromscratch.org/patches/downloads/expect/expect-5.45.4-gcc15-1.patch
+	cd expect*/
+	patch -Np1 -i ../expect-5.45.4-gcc15-1.patch
+	touch $ashtray/expect/src/patched
+	cd
+fi
+
 echo "smoke ${cigs[@]}" > /mnt/whispix/root/.cache/hotbox
 chmod +x /mnt/whispix/root/.cache/hotbox
 
 tmpfsmount
-chroot $DRAG_ROOT /bin/env -i cigs=$cigs /bin/bash -c "
+chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
 ~/.cache/hotbox
 "
