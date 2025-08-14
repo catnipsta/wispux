@@ -14,7 +14,7 @@ img {
 	margin-left:  auto;
 	margin-right: auto;
 	height: auto;
-	width: 15%;
+	width: 256px;
 	display: block;
 }
 
@@ -46,7 +46,7 @@ code {
 	margin-left:  auto;
 	margin-right: auto;
 	width: 100%;
-	max-width: 1024px;
+	max-width: 800px;
 	overflow: hidden;
 	line-height: 1.5;
 	display: block;
@@ -84,7 +84,7 @@ footer {
 	font-size: 12pt;
 	line-height: 1.5;
 	width: 100%;
-	max-width: 1024px;
+	max-width: 800px;
 	margin-left:  auto;
 	margin-right: auto;
 	text-align: left;

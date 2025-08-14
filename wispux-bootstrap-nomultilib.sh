@@ -1,0 +1,1558 @@
+#!/bin/bash
+
+set -e
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Wispux bootstrap script must be run as root."
+	echo
+	exit 1
+elif [[ $# != 1 || ! -d "$1" ]]; then
+	echo "Please pass 1 argument: your target mount directory"
+	echo
+	exit 1
+fi
+
+cigs=(
+man-pages
+iana-etc
+glibc
+zlib
+bzip2
+xz
+lz4
+zstd
+file
+readline
+m4
+bc
+flex
+tcl
+expect
+dejagnu
+pkgconf
+binutils
+gmp
+mpfr
+libmpc
+attr
+acl
+libcap
+libxcrypt
+shadow
+gcc
+ncurses
+sed
+psmisc
+gettext
+bison
+grep
+bash
+libtool
+gdbm
+gperf
+expat
+inetutils
+less
+perl
+perl-xml-parser
+intltool
+autoconf
+automake
+openssl
+elfutils
+libffi
+python
+python-flit-core
+python-wheel
+python-setuptools
+ninja
+meson
+kmod
+coreutils
+check
+diffutils
+gawk
+findutils
+groff
+gzip
+iproute2
+kbd
+libpipeline
+make
+patch
+tar
+texinfo
+vi
+python-markupsafe
+python-jinja
+man-db
+procps-ng
+util-linux
+e2fsprogs
+wget
+git
+)
+
+set +h
+umask 022
+cd $1
+export DRAG_ROOT=$(pwd)
+mkdir -p $DRAG_ROOT/root/.cache/drag
+mkdir -p ~/.cache
+ln -sf $DRAG_ROOT/root/.cache/drag ~/.cache
+mkdir -p $DRAG_ROOT/root/.cache/wispux-bootstrap
+mkdir -p ~/.cache
+ln -sf $DRAG_ROOT/root/.cache/wispux-bootstrap ~/.cache
+export PATH=$DRAG_ROOT/tools/bin:$PATH
+export TGT=$(uname -m)-wispux-linux-gnu
+export LC_ALL=POSIX
+export CONFIG_SITE=$DRAG_ROOT/usr/share/config.site
+unset CFLAGS CXXFLAGS
+ashtray=~/.cache/drag/ashtray
+if [ -f ~/.cache/wispux-bootstrap/krnlver ]; then
+	KRNLVER=$(cat ~/.cache/wispux-bootstrap/krnlver)
+	GLIBCVER=$(cat ~/.cache/wispux-bootstrap/glibcver)
+	GCCVER=$(cat ~/.cache/wispux-bootstrap/gccver)
+fi
+if [[ ! -f $DRAG_ROOT/usr/bin/smoke || ! -f /usr/bin/smoke ]]; then
+	rm -rf drag
+	git clone https://github.com/catnipsta/drag
+	chmod +x drag/scripts/*
+	mkdir -p $DRAG_ROOT/usr/bin/
+	cp drag/scripts/* $DRAG_ROOT/usr/bin/
+	cp drag/scripts/* /usr/bin/
+	rm -rf drag
+fi
+
+tmpfsmount() {
+	if ! mountpoint -q $DRAG_ROOT/proc; then
+	mount -t proc /proc $DRAG_ROOT/proc
+	fi
+	if ! mountpoint -q $DRAG_ROOT/sys; then
+	mount -R /sys $DRAG_ROOT/sys
+	mount --make-rslave $DRAG_ROOT/sys
+	fi
+	if ! mountpoint -q $DRAG_ROOT/dev; then
+	mount -R /dev $DRAG_ROOT/dev
+	mount --make-rslave $DRAG_ROOT/dev
+	fi
+	if ! mountpoint -q $DRAG_ROOT/run; then
+	mount -B /run $DRAG_ROOT/run
+	mount --make-slave $DRAG_ROOT/run
+	fi
+}
+
+if [ ! -f ~/.cache/wispux-bootstrap/1 ]; then
+echo
+echo "STAGE 1 - Setup"
+echo
+
+chown root:root $DRAG_ROOT
+chmod 755 $DRAG_ROOT
+cd $DRAG_ROOT
+
+mkdir -pv ./{etc,var,boot,home,mnt,opt,dev,proc,sys,run/lock,root,tmp} \
+	./usr/{bin,include,lib/locale,local/{bin,include,lib,lib64,sbin,share,src},sbin,src} \
+	./usr/local/share/{doc,info,locale,misc,terminfo,zoneinfo,man/man{1..8}} \
+	./usr/lib/firmware ./var/{cache,lib,log,opt,spool,mail,tmp}
+ln -sfv usr/bin bin
+ln -sfv usr/lib lib
+ln -sfv lib usr/lib64
+ln -sfv usr/lib lib64
+ln -sfv usr/sbin sbin
+ln -sfv ../run var/run
+ln -sfv ../run/lock var/lock
+ln -sfv ../proc/self/mounts etc/mtab
+chmod 1777 var/tmp
+chmod 1777 var/mail
+chmod 0750 root
+chmod 1777 tmp
+touch var/log/{btmp,lastlog,faillog,wtmp}
+chgrp -v utmp var/log/lastlog
+chmod -v 664  var/log/lastlog
+chmod -v 600  var/log/btmp
+
+	echo "Pinching /etc/passwd"
+	cat > $DRAG_ROOT/etc/passwd << "EOF"
+root:x:0:0:root:/root:/bin/bash
+uuidd:x:80:80:uuid daemon user:/dev/null:/usr/bin/false
+nobody:x:65534:65534:Unprivileged User:/dev/null:/usr/bin/false
+EOF
+	echo "Pinching /etc/group"
+	cat > $DRAG_ROOT/etc/group << "EOF"
+root:x:0:
+bin:x:1:
+sys:x:2:
+kmem:x:3:
+tape:x:4:
+tty:x:5:
+daemon:x:6:
+floppy:x:7:
+disk:x:8:
+lp:x:9:
+dialout:x:10:
+auto:x:11:
+video:x:12:
+utmp:x:13:
+cdrom:x:15:
+adm:x:16:
+messagebus:x:18:
+input:x:24:
+mail:x:34:
+kvm:x:61:
+uuidd:x:80:
+wheel:x:97:
+users:x:999:
+nogroup:x:65534:
+EOF
+	echo "Pinching /etc/profile"
+	cat > $DRAG_ROOT/etc/profile << "EOF"
+# /etc/profile
+
+umask 022
+
+appendpath () {
+    case ":$PATH:" in
+        *:"$1":*)
+            ;;
+        *)
+            PATH="${PATH:+$PATH:}$1"
+    esac
+}
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+export ashtray=~/.cache/drag/ashtray
+
+EOF
+echo "export MAKEFLAGS='"$MAKEFLAGS"'" >> $DRAG_ROOT/etc/profile
+	cat >> $DRAG_ROOT/etc/profile << "EOF"
+
+if [ -d /etc/profile.d/ ]; then
+        for f in /etc/profile.d/*.sh; do
+                [ -r "$f" ] && . "$f"
+        done
+fi
+EOF
+	echo "Pinching init"
+	cat > $DRAG_ROOT/sbin/init << "EOF"
+#!/bin/sh
+
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+
+mount -o remount,rw /
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+mkdir /dev/pts /dev/shm
+mount -t devpts devpts /dev/pts
+mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /dev/shm
+mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /run
+mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /tmp
+mount -a
+swapon -a
+
+. /etc/locale.conf
+
+export LANG LC_ALL LC_COLLATE
+hostname "$(cat /etc/hostname)"
+
+#Setup udev
+#udevd --daemon
+#udevadm trigger
+#udevadm settle
+
+#Setup ethernet
+#ip link set lo up
+#ip link set eth0 up
+#ip addr add XXX.XXX.XXX.XXX/XX dev eth0
+#ip route add default via XXX.XXX.XXX.XXX
+
+setsid agetty --noclear tty1 38400 linux &
+setsid agetty tty2 38400 linux &
+setsid agetty tty3 38400 linux &
+setsid agetty tty4 38400 linux &
+
+while true; do wait; done
+EOF
+	chmod +x $DRAG_ROOT/sbin/init
+	echo "Pinching power utilities"
+	cat > $DRAG_ROOT/sbin/poweroff << "EOF"
+#!/bin/sh
+
+if [ $EUID != 0 ]; then
+	echo "Insufficient privileges."
+	echo
+	exit 1
+elif [ $PPID != 1 ]; then
+	nohup $0 >/dev/null 2>&1 &
+	exit 0
+fi
+
+echo "Syncing filesystems..."
+sync
+
+echo "Killing processes..."
+kill -TERM -1
+sleep 1
+kill -KILL -1
+
+echo "Unmounting filesystems..."
+umount $(awk '$2 != "/" && $2 != "/proc" && $2 != "/sys" && $2 != "/dev" && $2 != "/run" {print $2}' /proc/mounts | tac)
+mount -o remount,rw /
+
+echo "Powering off..."
+echo o > /proc/sysrq-trigger
+EOF
+	cat > $DRAG_ROOT/sbin/reboot << "EOF"
+#!/bin/sh
+
+if [ $EUID != 0 ]; then
+	echo "Insufficient privileges."
+	echo
+	exit 1
+elif [ $PPID != 1 ]; then
+	nohup $0 >/dev/null 2>&1 &
+	exit 0
+fi
+
+echo "Syncing filesystems..."
+sync
+
+echo "Killing processes..."
+kill -TERM -1
+sleep 1
+kill -KILL -1
+
+echo "Unmounting filesystems..."
+umount $(awk '$2 != "/" && $2 != "/proc" && $2 != "/sys" && $2 != "/dev" && $2 != "/run" {print $2}' /proc/mounts | tac)
+mount -o remount,rw /
+
+echo "Rebooting..."
+echo b > /proc/sysrq-trigger
+EOF
+	cat > $DRAG_ROOT/sbin/halt << "EOF"
+#!/bin/sh
+
+if [ $EUID != 0 ]; then
+	echo "Insufficient privileges."
+	echo
+	exit 1
+elif [ $PPID != 1 ]; then
+	nohup $0 >/dev/null 2>&1 &
+	exit 0
+fi
+
+echo "Syncing filesystems..."
+sync
+
+echo "Killing processes..."
+kill -TERM -1
+sleep 1
+kill -KILL -1
+
+echo "Unmounting filesystems..."
+umount $(awk '$2 != "/" && $2 != "/proc" && $2 != "/sys" && $2 != "/dev" && $2 != "/run" {print $2}' /proc/mounts | tac)
+mount -o remount,rw /
+
+echo "Halting..."
+echo h > /proc/sysrq-trigger
+EOF
+	chmod +x $DRAG_ROOT/sbin/poweroff $DRAG_ROOT/sbin/reboot $DRAG_ROOT/sbin/halt
+	echo "Pinching drag"
+	cd
+	
+	echo "Branding Wispux"
+	cat > $DRAG_ROOT/etc/os-release << "EOF"
+NAME="Wispux Linux"
+PRETTY_NAME="Wispux Linux"
+ID="wispux"
+EOF
+
+touch ~/.cache/wispux-bootstrap/1
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/2 ]; then
+echo
+echo "STAGE 2 - Download the Linux kernel, Glibc, and GCC"
+echo
+
+rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
+
+DKRNLVER=6.12.40
+DGLIBCVER=2.41
+DGCCVER=14.2.0
+
+read -p "What Linux kernel version do you wish to use? (default: $DKRNLVER) " KRNLVER
+read -p "Glibc version? (default: $DGLIBCVER) " GLIBCVER
+read -p "GCC version?   (default: $DGCCVER) " GCCVER
+
+[[ $KRNLVER == "" ]] && KRNLVER=$DKRNLVER
+[[ $GLIBCVER == "" ]] && GLIBCVER=$DGLIBCVER
+[[ $GCCVER == "" ]] && GCCVER=$DGCCVER
+
+wget --spider https://ftp.gnu.org/gnu/glibc/glibc-$GLIBCVER.tar.xz
+wget --spider https://ftp.gnu.org/gnu/gcc/gcc-$GCCVER/gcc-$GCCVER.tar.xz
+
+cd $DRAG_ROOT/usr/src
+wget https://cdn.kernel.org/pub/linux/kernel/v${KRNLVER:0:1}.x/linux-$KRNLVER.tar.xz
+tar xJf linux-$KRNLVER.tar.xz
+rm linux-$KRNLVER.tar.xz
+
+echo $KRNLVER  > ~/.cache/wispux-bootstrap/krnlver
+echo $GLIBCVER > ~/.cache/wispux-bootstrap/glibcver
+echo $GCCVER   > ~/.cache/wispux-bootstrap/gccver
+
+touch ~/.cache/wispux-bootstrap/2
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/3 ]; then
+echo
+echo "STAGE 3 - Download PKGBUILDs"
+echo
+
+rm /usr/bin/snoop
+touch /usr/bin/snoop
+chmod +x /usr/bin/snoop
+stash ${cigs[@]}
+cp $DRAG_ROOT/usr/bin/snoop /usr/bin/snoop
+
+### PATCH PKGBUILDS TO CORRECT SOURCE, CONFIGURATION, BUILD, AND DISABLE CERTAIN COMMANDS WHICH WOULD COMPLICATE THE PROCESS ###
+
+cat > ~/.cache/drag/stash/glibc/PKGBUILD << EOF
+pkgname=glibc
+pkgver=$GLIBCVER
+
+EOF
+cat >> ~/.cache/drag/stash/glibc/PKGBUILD << "EOF"
+source=("https://ftp.gnu.org/gnu/glibc/glibc-$pkgver.tar.xz")
+
+build() {
+cd glibc-$pkgver
+
+rm -rf build
+mkdir -p build
+cd build
+
+echo "rootsbindir=/usr/sbin" > configparms
+
+../configure --prefix=/usr \
+	--disable-werror \
+	--enable-kernel=5.4 \
+	--enable-stack-protector=strong \
+	--disable-nscd
+make
+}
+
+package() {
+cd glibc-$pkgver/build
+
+make DESTDIR=$pkgdir install
+
+sed '/RTLDLIST=/s@/usr@@g' -i $pkgdir/usr/bin/ldd
+mkdir -p $pkgdir/etc
+echo "passwd: files" >  $pkgdir/etc/nsswitch.conf
+echo "group: files" >> $pkgdir/etc/nsswitch.conf
+echo "shadow: files" >> $pkgdir/etc/nsswitch.conf
+echo "hosts: files dns" >> $pkgdir/etc/nsswitch.conf
+echo "networks: files" >> $pkgdir/etc/nsswitch.conf
+echo "protocols: files" >> $pkgdir/etc/nsswitch.conf
+echo "services: files" >> $pkgdir/etc/nsswitch.conf
+echo "ethers: files" >> $pkgdir/etc/nsswitch.conf
+echo "rpc: files" >> $pkgdir/etc/nsswitch.conf
+echo "/usr/local/lib" > $pkgdir/etc/ld.so.conf
+
+localedef -i C -f UTF-8 C.UTF-8
+localedef -i en_US -f UTF-8 en_US.UTF-8
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+}
+EOF
+
+cat > ~/.cache/drag/stash/gcc/PKGBUILD << EOF
+pkgname=gcc
+pkgver=$GCCVER
+
+EOF
+cat >> ~/.cache/drag/stash/gcc/PKGBUILD << "EOF"
+source=("https://ftp.gnu.org/gnu/gcc/gcc-$pkgver/gcc-$pkgver.tar.xz")
+
+build() {
+cd gcc-$pkgver
+
+rm -rf build
+mkdir -p build
+cd build
+
+../configure --prefix=/usr \
+	LD=ld \
+	--enable-languages=c,c++ \
+	--enable-default-pie \
+	--enable-default-ssp \
+	--enable-host-pie \
+	--disable-multilib \
+	--disable-bootstrap \
+	--disable-fixincludes \
+	--with-system-zlib
+make
+}
+
+package() {
+cd gcc-$pkgver/build
+
+make DESTDIR=$pkgdir install
+}
+EOF
+
+cat > ~/.cache/drag/stash/binutils/PKGBUILD << EOF
+pkgname=binutils
+pkgver=$(date +%Y%m%d)
+
+EOF
+
+cat >> ~/.cache/drag/stash/binutils/PKGBUILD << "EOF"
+source=("git+https://sourceware.org/git/binutils-gdb.git")
+
+build() {
+cd binutils-gdb/
+
+rm -rf build
+mkdir -p build
+cd build
+
+../configure --prefix=/usr       \
+             --sysconfdir=/etc   \
+             --enable-ld=default \
+             --enable-plugins    \
+             --enable-shared     \
+             --disable-werror    \
+             --enable-64-bit-bfd \
+             --enable-new-dtags  \
+             --with-system-zlib  \
+	     --disable-gdb       \
+	     --disable-gdbserver \
+             --enable-default-hash-style=gnu
+make tooldir=/usr
+}
+
+package() {
+cd binutils-gdb/build
+
+make DESTDIR=$pkgdir tooldir=/usr install
+}
+EOF
+
+mkdir -p ~/.cache/drag/stash/eudev
+cat > ~/.cache/drag/stash/eudev/PKGBUILD << "EOF"
+pkgname="eudev"
+pkgver="9e7c4e7"
+source=("git+https://github.com/eudev-project/eudev.git#commit=$pkgver")
+
+build=(
+cd eudev
+./autogen.sh
+./configure --prefix=/usr --sysconfdir=/etc --disable-static
+make)
+
+package=(
+make DESTDIR=$pkgdir install
+)
+EOF
+
+sed -i 's/pkgver=.*/pkgver=8.6.16/' ~/.cache/drag/stash/tcl/PKGBUILD
+sed -i 's/pkgname=.*/pkgname=libxcrypt/' ~/.cache/drag/stash/libxcrypt/PKGBUILD
+sed -i '/--with-libpam/d; /--with-audit/d; /--enable-man/d' ~/.cache/drag/stash/shadow/PKGBUILD
+sed -i 's/^[[:space:]]*make[[:space:]]*$/make clean \&\& make/' ~/.cache/drag/stash/grep/PKGBUILD
+sed -i '/case/,/esac/d' ~/.cache/drag/stash/openssl/PKGBUILD
+sed -i '/local _platform/d' ~/.cache/drag/stash/openssl/PKGBUILD
+sed -i 's/pkgbase/pkgname/' ~/.cache/drag/stash/openssl/PKGBUILD
+sed -i '/if \[/,/fi/d' ~/.cache/drag/stash/openssl/PKGBUILD
+sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,inetutils}/PKGBUILD 
+sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool}/PKGBUILD # checks fail or take too long
+
+### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
+sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,check,wget,tcl}/PKGBUILD
+
+(source ~/.cache/drag/stash/coreutils/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/coreutils\/coreutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/coreutils/PKGBUILD
+source ~/.cache/drag/stash/diffutils/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/diffutils\/diffutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/diffutils/PKGBUILD
+source ~/.cache/drag/stash/file/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/astron.com\/pub\/file\/file-$pkgver.tar.gz)/' ~/.cache/drag/stash/file/PKGBUILD
+source ~/.cache/drag/stash/findutils/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/findutils\/findutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/findutils/PKGBUILD
+source ~/.cache/drag/stash/grep/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/grep\/grep-$pkgver.tar.xz)/' ~/.cache/drag/stash/grep/PKGBUILD
+source ~/.cache/drag/stash/gzip/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/gzip\/gzip-$pkgver.tar.xz)/' ~/.cache/drag/stash/gzip/PKGBUILD
+source ~/.cache/drag/stash/patch/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/patch\/patch-$pkgver.tar.xz)/' ~/.cache/drag/stash/patch/PKGBUILD
+source ~/.cache/drag/stash/flex/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/westes\/flex\/releases\/download\/v$pkgver\/flex-$pkgver.tar.gz)/' ~/.cache/drag/stash/flex/PKGBUILD
+source ~/.cache/drag/stash/pkgconf/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/distfiles.ariadne.space\/pkgconf\/pkgconf-$pkgver.tar.xz)/' ~/.cache/drag/stash/pkgconf/PKGBUILD
+source ~/.cache/drag/stash/attr/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/attr\/attr-$pkgver.tar.gz)/' ~/.cache/drag/stash/attr/PKGBUILD
+source ~/.cache/drag/stash/acl/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/acl\/acl-$pkgver.tar.xz)/' ~/.cache/drag/stash/acl/PKGBUILD
+source ~/.cache/drag/stash/psmisc/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/sourceforge.net\/projects\/psmisc\/files\/psmisc\/psmisc-$pkgver.tar.xz)/' ~/.cache/drag/stash/psmisc/PKGBUILD
+source ~/.cache/drag/stash/libtool/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/libtool\/libtool-${pkgver%%+*}.tar.xz)/' ~/.cache/drag/stash/libtool/PKGBUILD
+source ~/.cache/drag/stash/inetutils/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/inetutils\/inetutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/inetutils/PKGBUILD
+source ~/.cache/drag/stash/automake/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/automake\/automake-$pkgver.tar.xz)/' ~/.cache/drag/stash/automake/PKGBUILD
+source ~/.cache/drag/stash/groff/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/groff\/groff-$pkgver.tar.gz)/' ~/.cache/drag/stash/groff/PKGBUILD
+source ~/.cache/drag/stash/shadow/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/shadow-maint\/shadow\/releases\/download\/$pkgver\/shadow-$pkgver.tar.xz)/' ~/.cache/drag/stash/shadow/PKGBUILD
+source ~/.cache/drag/stash/check/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/libcheck\/check\/releases\/download\/$pkgver\/check-$pkgver.tar.gz)/' ~/.cache/drag/stash/check/PKGBUILD
+source ~/.cache/drag/stash/wget/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/wget\/wget-$pkgver.tar.gz)/' ~/.cache/drag/stash/wget/PKGBUILD)
+for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,check,wget}; do
+	(source ~/.cache/drag/stash/$i/PKGBUILD
+	sed -i 's/cd .*pkgname.*/cd $pkgname-$pkgver/' ~/.cache/drag/stash/$i/PKGBUILD)
+done
+sed -i 's/cd file/cd $pkgname-$pkgver/' ~/.cache/drag/stash/file/PKGBUILD
+sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/libtool/PKGBUILD
+
+(source ~/.cache/drag/stash/xz/PKGBUILD
+cat > ~/.cache/drag/stash/xz/PKGBUILD << EOF
+pkgname=xz
+pkgver=$pkgver
+source=(https://github.com/tukaani-project/xz/releases/download/v$pkgver/xz-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/xz/PKGBUILD << "EOF"
+build(){
+cd $pkgname-$pkgver
+./configure --prefix=/usr --disable-static
+make
+}
+package(){
+cd $pkgname-$pkgver
+make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/lz4/PKGBUILD
+cat > ~/.cache/drag/stash/lz4/PKGBUILD << EOF
+pkgname=lz4
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/lz4/PKGBUILD << "EOF"
+build(){
+cd lz4
+make BUILD_STATIC=no PREFIX=/usr
+}
+package(){
+cd lz4
+make DESTDIR=$pkgdir BUILD_STATIC=no PREFIX=/usr install
+}
+EOF
+
+(source ~/.cache/drag/stash/zstd/PKGBUILD
+cat > ~/.cache/drag/stash/zstd/PKGBUILD << EOF
+pkgname=zstd
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/zstd/PKGBUILD << "EOF"
+build(){
+cd zstd-$pkgver
+make prefix=/usr
+}
+package(){
+cd zstd-$pkgver
+make DESTDIR=$pkgdir prefix=/usr install
+}
+EOF
+
+(source ~/.cache/drag/stash/pkgconf/PKGBUILD
+cat > ~/.cache/drag/stash/pkgconf/PKGBUILD << EOF
+pkgname=pkgconf
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/pkgconf/PKGBUILD << "EOF"
+build(){
+cd $pkgname-$pkgver
+./configure --prefix=/usr --disable-static
+make
+}
+package(){
+cd $pkgname-$pkgver
+make DESTDIR=$pkgdir install
+ln -sv pkgconf $pkgdir/usr/bin/pkg-config
+}
+EOF
+
+(source ~/.cache/drag/stash/elfutils/PKGBUILD
+cat > ~/.cache/drag/stash/elfutils/PKGBUILD << EOF
+pkgname=elfutils
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/elfutils/PKGBUILD << "EOF"
+prepare(){
+cd elfutils
+autoreconf -fi
+}
+build(){
+cd elfutils
+./configure --prefix=/usr --enable-maintainer-mode
+make
+}
+package(){
+cd elfutils
+make DESTDIR=$pkgdir install
+install -vm644 config/libelf.pc $pkgdir/usr/lib/pkgconfig
+}
+EOF
+
+(source ~/.cache/drag/stash/expat/PKGBUILD
+cat > ~/.cache/drag/stash/expat/PKGBUILD << EOF
+pkgname=expat
+pkgver=$pkgver
+source=(https://prdownloads.sourceforge.net/expat/expat-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/expat/PKGBUILD << "EOF"
+build(){
+cd expat-$pkgver
+./configure --prefix=/usr --disable-static
+make
+}
+package(){
+cd expat-$pkgver
+make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/python/PKGBUILD
+cat > ~/.cache/drag/stash/python/PKGBUILD << EOF
+pkgname=python
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/python/PKGBUILD << "EOF"
+build(){
+cd Python-$pkgver
+./configure --prefix=/usr --enable-shared --with-system-expat --enable-optimizations
+make
+}
+package(){
+cd Python-$pkgver
+make DESTDIR=$pkgdir install
+ln -sf python3 $pkgdir/usr/bin/python
+ln -sf python3-config $pkgdir/usr/bin/python-config
+ln -sf idle3 $pkgdir/usr/bin/idle
+ln -sf pydoc3 $pkgdir/usr/bin/pydoc
+}
+EOF
+
+(source ~/.cache/drag/stash/python-flit-core/PKGBUILD
+cat > ~/.cache/drag/stash/python-flit-core/PKGBUILD << EOF
+pkgname=python-flit-core
+pkgver=$pkgver
+source=(https://pypi.org/packages/source/f/flit-core/flit_core-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/python-flit-core/PKGBUILD << "EOF"
+build(){
+cd flit_core-$pkgver
+pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
+}
+package(){
+cd flit_core-$pkgver
+pip3 install --root=$pkgdir --no-index --find-links dist flit_core
+}
+EOF
+
+(source ~/.cache/drag/stash/python-wheel/PKGBUILD
+cat > ~/.cache/drag/stash/python-wheel/PKGBUILD << EOF
+pkgname=python-wheel
+pkgver=$pkgver
+source=(https://pypi.org/packages/source/w/wheel/wheel-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/python-wheel/PKGBUILD << "EOF"
+build(){
+cd wheel-$pkgver
+pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
+}
+package(){
+cd wheel-$pkgver
+pip3 install --root=$pkgdir --no-index --find-links dist wheel
+}
+EOF
+
+(source ~/.cache/drag/stash/python-setuptools/PKGBUILD
+cat > ~/.cache/drag/stash/python-setuptools/PKGBUILD << EOF
+pkgname=python-setuptools
+pkgver=$pkgver
+source=(https://pypi.org/packages/source/s/setuptools/setuptools-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/python-setuptools/PKGBUILD << "EOF"
+build(){
+cd setuptools-$pkgver
+pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
+}
+package(){
+cd setuptools-$pkgver
+pip3 install --root=$pkgdir --no-index --find-links dist setuptools
+}
+EOF
+
+(source ~/.cache/drag/stash/python-markupsafe/PKGBUILD
+cat > ~/.cache/drag/stash/python-markupsafe/PKGBUILD << EOF
+pkgname=python-markupsafe
+pkgver=$pkgver
+source=(https://pypi.org/packages/source/M/MarkupSafe/markupsafe-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/python-markupsafe/PKGBUILD << "EOF"
+build(){
+cd markupsafe-$pkgver
+pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
+}
+package(){
+cd markupsafe-$pkgver
+pip3 install --root=$pkgdir --no-index --find-links dist MarkupSafe
+}
+EOF
+
+(source ~/.cache/drag/stash/python-jinja/PKGBUILD
+cat > ~/.cache/drag/stash/python-jinja/PKGBUILD << EOF
+pkgname=python-jinja
+pkgver=$pkgver
+source=(https://pypi.org/packages/source/J/Jinja2/jinja2-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/python-jinja/PKGBUILD << "EOF"
+build(){
+cd jinja2-$pkgver
+pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
+}
+package(){
+cd jinja2-$pkgver
+pip3 install --root=$pkgdir --no-index --find-links dist Jinja2
+}
+EOF
+
+(source ~/.cache/drag/stash/ninja/PKGBUILD
+cat > ~/.cache/drag/stash/ninja/PKGBUILD << EOF
+pkgname=ninja
+pkgver=$pkgver
+source=(https://github.com/ninja-build/ninja/archive/v$pkgver/ninja-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/ninja/PKGBUILD << "EOF"
+build(){
+cd ninja-$pkgver
+python configure.py --bootstrap --verbose
+}
+package(){
+cd ninja-$pkgver
+install -vDm755 ninja $pkgdir/usr/bin/
+install -vDm644 misc/bash-completion $pkgdir/usr/share/bash-completion/completions/ninja
+install -vDm644 misc/zsh-completion $pkgdir/usr/share/zsh/site-functions/_ninja
+}
+EOF
+
+(source ~/.cache/drag/stash/meson/PKGBUILD
+cat > ~/.cache/drag/stash/meson/PKGBUILD << EOF
+pkgname=meson
+pkgver=$pkgver
+source=(https://github.com/mesonbuild/meson/releases/download/$pkgver/meson-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/meson/PKGBUILD << "EOF"
+build(){
+cd meson-$pkgver
+pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
+}
+package(){
+cd meson-$pkgver
+pip3 install --root=$pkgdir --no-index --find-links dist meson
+install -vDm644 data/shell-completions/bash/meson $pkgdir/usr/share/bash-completion/completions/meson
+install -vDm644 data/shell-completions/zsh/_meson $pkgdir/usr/share/zsh/site-functions/_meson
+}
+EOF
+
+(source ~/.cache/drag/stash/gdbm/PKGBUILD
+cat > ~/.cache/drag/stash/gdbm/PKGBUILD << EOF
+pkgname=gdbm
+pkgver=$pkgver
+source=(https://ftp.gnu.org/gnu/gdbm/gdbm-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/gdbm/PKGBUILD << "EOF"
+build(){
+cd gdbm-$pkgver
+./configure --prefix=/usr \
+	--disable-static \
+	--enable-libgdbm-compat
+make
+}
+package(){
+cd gdbm-$pkgver
+make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/perl/PKGBUILD
+cat > ~/.cache/drag/stash/perl/PKGBUILD << EOF
+pkgname=perl
+pkgver=$pkgver
+source=(https://www.cpan.org/src/${pkgver%%.*}.0/perl-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/perl/PKGBUILD << "EOF"
+build(){
+cd perl-$pkgver
+
+export BUILD_ZLIB=False
+export BUILD_BZIP2=0
+
+sh Configure -des \
+	-Dprefix=/usr \
+	-Dvendorprefix=/usr \
+	-Dprivlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
+	-Darchlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
+	-Dsitelib=/usr/lib/perl5/${pkgver%.*}/site_perl \
+	-Dsitearch=/usr/lib/perl5/${pkgver%.*}/site_perl \
+	-Dvendorlib=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
+	-Dvendorarch=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
+	-Dman1dir=/usr/share/man/man1 \
+	-Dman3dir=/usr/share/man/man3 \
+	-Dpager="/usr/bin/less -isR" \
+	-Duseshrplib \
+	-Dusethreads
+make
+}
+package(){
+cd perl-$pkgver
+make DESTDIR=$pkgdir install
+}
+EOF
+
+touch ~/.cache/wispux-bootstrap/3
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/4 ]; then
+echo
+echo "STAGE 4 - Download source"
+echo
+
+
+pinch ${cigs[@]}
+
+touch ~/.cache/wispux-bootstrap/4
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/5 ]; then
+echo
+echo "STAGE 5 - binutils pass 1"
+echo
+
+cd $ashtray/binutils/src/binutils*/
+
+rm -rf build
+mkdir -p build
+cd build
+
+../configure --prefix=$DRAG_ROOT/tools \
+	--with-sysroot=$DRAG_ROOT \
+	--target=$TGT \
+	--disable-nls \
+	--enable-gprofng=no \
+	--disable-werror \
+	--enable-new-dtags \
+	--enable-default-hash-style=gnu \
+	--disable-gdb \
+	--disable-gdbserver
+make
+make install
+
+touch ~/.cache/wispux-bootstrap/5
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/6 ]; then
+echo
+echo "STAGE 6 - GCC pass 1"
+echo
+
+cd $ashtray/gcc/src/gcc*/
+tar xJf $ashtray/mpfr/src/mpfr*.tar.xz
+lzip -cd $ashtray/gmp/src/gmp*.tar.lz | tar xf -
+tar xzf $ashtray/libmpc/src/mpc*.tar.gz
+rm -rf mpfr
+rm -rf gmp
+rm -rf mpc
+mv mpfr*/ mpfr
+mv gmp*/ gmp
+mv mpc*/ mpc
+
+rm -rf build
+mkdir -p build
+cd build
+
+../configure --target=$TGT \
+	--prefix=$DRAG_ROOT/tools \
+	--with-glibc-version=$GLIBCVER \
+	--with-sysroot=$DRAG_ROOT \
+	--with-newlib \
+	--without-headers \
+	--enable-default-pie \
+	--enable-default-ssp \
+	--disable-nls \
+	--disable-shared \
+	--disable-multilib \
+	--disable-threads \
+	--disable-libatomic \
+	--disable-libgomp \
+	--disable-libquadmath \
+	--disable-libssp \
+	--disable-libvtv \
+	--disable-libstdcxx \
+	--enable-languages=c,c++
+make
+make install
+
+cd ..
+cat gcc/limitx.h gcc/glimits.h gcc/limity.h > `dirname $($TGT-gcc -print-libgcc-file-name)`/include/limits.h
+
+touch ~/.cache/wispux-bootstrap/6
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/7 ]; then
+echo
+echo "STAGE 7 - Linux headers"
+echo
+
+cd $DRAG_ROOT/usr/src/linux-$KRNLVER
+make mrproper
+make headers
+find usr/include -type f ! -name '*.h' -delete
+cp -r usr/include $DRAG_ROOT/usr
+
+touch ~/.cache/wispux-bootstrap/7
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/8 ]; then
+echo
+echo "STAGE 8 - Glibc"
+echo
+
+cd $ashtray/glibc/src/glibc*/
+
+rm -rf build
+mkdir -p build
+cd build
+
+echo "rootsbindir=/usr/sbin" > configparms
+../configure --prefix=/usr \
+	--host=$TGT \
+	--build=$(../scripts/config.guess) \
+	--enable-kernel=5.4 \
+	--with-headers=$DRAG_ROOT/usr/include \
+	--disable-nscd \
+	libc_cv_slibdir=/usr/lib
+make
+make DESTDIR=$DRAG_ROOT install
+
+sed '/RTLDLIST=/s@/usr@@g' -i $DRAG_ROOT/usr/bin/ldd
+
+touch ~/.cache/wispux-bootstrap/8
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/9 ]; then
+echo
+echo "STAGE 9 - libstdc++"
+echo
+
+cd $ashtray/gcc/src/gcc*/
+
+rm -rf build
+mkdir -p build
+cd build
+
+../libstdc++-v3/configure --host=$TGT \
+	--build=$(../config.guess) \
+	--prefix=/usr \
+	--disable-multilib \
+	--disable-nls \
+	--disable-libstdcxx-pch \
+	--with-gxx-include-dir=/tools/$TGT/include/c++/$GCCVER
+make
+make DESTDIR=$DRAG_ROOT install
+rm -f $DRAG_ROOT/usr/lib/lib{stdc++{,exp,fs},supc++}.la
+
+touch ~/.cache/wispux-bootstrap/9
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/10 ]; then
+echo
+echo "STAGE 10 - m4"
+echo
+
+cd $ashtray/m4/src/m4*/
+
+./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
+make
+make DESTDIR=$DRAG_ROOT install
+
+pinch m4
+
+touch ~/.cache/wispux-bootstrap/10
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/11 ]; then
+echo
+echo "STAGE 11 - ncurses"
+echo
+
+cd $ashtray/ncurses/src/ncurses*/
+
+mkdir -p build
+cd build
+../configure AWK=gawk
+make -C include
+make -C progs tic
+cd $ashtray/ncurses/src/ncurses*/
+
+./configure --prefix=/usr \
+	--host=$TGT \
+	--build=$(./config.guess) \
+	--mandir=/usr/share/man \
+	--with-manpage-format=normal \
+	--with-shared \
+	--without-normal \
+	--with-cxx-shared \
+	--without-debug \
+	--without-ada \
+	--disable-stripping \
+	AWK=gawk
+make
+make DESTDIR=$DRAG_ROOT TIC_PATH=$(pwd)/build/progs/tic install
+ln -s libncursesw.so $DRAG_ROOT/usr/lib/libncurses.so
+sed -e 's/^#if.*XOPEN.*$/#if 1/' -i $DRAG_ROOT/usr/include/curses.h
+
+touch ~/.cache/wispux-bootstrap/11
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/12 ]; then
+echo
+echo "STAGE 12 - bash"
+echo
+
+cd $ashtray/bash/src/bash*/
+
+./configure --prefix=/usr --host=$TGT --build=$(sh support/config.guess) --without-bash-malloc
+make
+make DESTDIR=$DRAG_ROOT install
+ln -s bash $DRAG_ROOT/bin/sh
+
+cd $ashtray
+pinch bash
+
+touch ~/.cache/wispux-bootstrap/12
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/13 ]; then
+echo
+echo "STAGE 13 - coreutils"
+echo
+
+cd $ashtray/coreutils/src/coreutils*/
+
+./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess) --enable-install-program=hostname --enable-no-install-program=kill,uptime
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/13
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/14 ]; then
+echo
+echo "STAGE 14 - diffutils"
+echo
+
+cd $ashtray/diffutils/src/diffutils*/
+
+export CFLAGS="-Wno-error"
+./configure --prefix=/usr --host=$TGT --build=$(./build-aux/config.guess) gl_cv_func_strcasecmp_works=y
+make
+make DESTDIR=$DRAG_ROOT install
+unset CFLAGS
+
+touch ~/.cache/wispux-bootstrap/14
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/15 ]; then
+echo
+echo "STAGE 15 - file"
+echo
+
+cd $ashtray/file/src/file*/
+
+mkdir -p build
+cd build
+../configure --disable-bzlib --disable-libseccomp --disable-xzlib --disable-zlib
+make
+cd $ashtray/file/src/file*/
+
+./configure --prefix=/usr --host=$TGT --build=$(./config.guess)
+make FILE_COMPILE=$(pwd)/build/src/file
+make DESTDIR=$DRAG_ROOT install
+rm -f $DRAG_ROOT/usr/lib/libmagic.la
+
+touch ~/.cache/wispux-bootstrap/15
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/16 ]; then
+echo
+echo "STAGE 16 - findutils"
+echo
+
+cd $ashtray/findutils/src/findutils*/
+
+./configure --prefix=/usr --localstatedir=/var/lib/locate --host=$TGT --build=$(build-aux/config.guess)
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/16
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/17 ]; then
+echo
+echo "STAGE 17 - gawk"
+echo
+
+cd $ashtray/gawk/src/gawk*/
+
+./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/17
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/18 ]; then
+echo
+echo "STAGE 18 - grep"
+echo
+
+cd $ashtray/grep/src/grep*/
+
+./configure --prefix=/usr --host=$TGT --build=$(./build-aux/config.guess)
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/18
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/19 ]; then
+echo
+echo "STAGE 19 - gzip"
+echo
+
+cd $ashtray/gzip/src/gzip*/
+
+./configure --prefix=/usr --host=$TGT
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/19
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/20 ]; then
+echo
+echo "STAGE 20 - make"
+echo
+
+cd $ashtray/make/src/make*/
+
+./configure --prefix=/usr --host=$TGT --without-guile --build=$(build-aux/config.guess)
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/20
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/21 ]; then
+echo
+echo "STAGE 21 - patch"
+echo
+
+cd $ashtray/patch/src/patch*/
+
+./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/21
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/22 ]; then
+echo
+echo "STAGE 22 - sed"
+echo
+
+cd $ashtray/sed/src/sed*/
+
+./configure --prefix=/usr --host=$TGT --build=$(./build-aux/config.guess)
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/22
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/23 ]; then
+echo
+echo "STAGE 23 - tar"
+echo
+
+cd $ashtray/tar/src/tar*/
+
+./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
+make
+make DESTDIR=$DRAG_ROOT install
+
+touch ~/.cache/wispux-bootstrap/23
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/24 ]; then
+echo
+echo "STAGE 24 - xz"
+echo
+
+cd $ashtray/xz/src/xz*/
+
+./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess) --disable-static
+make
+make DESTDIR=$DRAG_ROOT install
+rm -f $DRAG_ROOT/usr/lib/liblzma.la
+
+touch ~/.cache/wispux-bootstrap/24
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/25 ]; then
+echo
+echo "STAGE 25 - binutils pass 2"
+echo
+
+cd $ashtray/binutils/src/binutils*/
+sed '6031s/$add_dir//' -i ltmain.sh
+
+rm -rf build
+mkdir -p build
+cd build
+
+../configure --prefix=/usr \
+	--build=$(../config.guess) \
+	--host=$TGT \
+	--disable-nls \
+	--enable-shared \
+	--enable-gprofng=no \
+	--disable-werror \
+	--enable-64-bit-bfd \
+	--enable-new-dtags \
+	--enable-default-hash-style=gnu \
+	--without-zstd \
+	--disable-gdb \
+	--disable-gdbserver
+make
+make DESTDIR=$DRAG_ROOT install
+rm -f $DRAG_ROOT/usr/lib/lib{bfd,ctf,ctf-nobfd,opcodes,sframe}.{a,la}
+
+cd $ashtray
+pinch binutils
+
+touch ~/.cache/wispux-bootstrap/25
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/26 ]; then
+echo
+echo "STAGE 26 - GCC pass 2"
+echo
+
+cd $ashtray/gcc/src/gcc*/
+tar xJf $ashtray/mpfr/src/mpfr*.tar.xz
+lzip -cd $ashtray/gmp/src/gmp*.tar.lz | tar xf -
+tar xzf $ashtray/libmpc/src/mpc*.tar.gz
+rm -rf mpfr
+rm -rf gmp
+rm -rf mpc
+mv mpfr*/ mpfr
+mv gmp*/ gmp
+mv mpc*/ mpc
+sed '/thread_header =/s/@.*@/gthr-posix.h/' -i libgcc/Makefile.in libstdc++-v3/include/Makefile.in
+
+rm -rf build
+mkdir -p build
+cd build
+
+../configure --build=$(../config.guess) \
+	--host=$TGT \
+	--target=$TGT \
+	LDFLAGS_FOR_TARGET=-L$PWD/$TGT/libgcc \
+	--prefix=/usr \
+	CC_FOR_TARGET=$TGT-gcc \
+	--with-build-sysroot=$DRAG_ROOT \
+	--enable-default-pie \
+	--enable-default-ssp \
+	--enable-initfini-array \
+	--disable-nls \
+	--disable-multilib \
+	--disable-libatomic \
+	--disable-libgomp \
+	--disable-libquadmath \
+	--disable-libsanitizer \
+	--disable-libssp \
+	--disable-libvtv \
+	--enable-languages=c,c++
+make
+make DESTDIR=$DRAG_ROOT install
+ln -s gcc $DRAG_ROOT/usr/bin/cc
+
+cd $ashtray
+pinch gcc
+
+touch ~/.cache/wispux-bootstrap/26
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/27 ]; then
+echo
+echo "STAGE 27 - gettext"
+echo
+
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+cd $ashtray/gettext/src/gettext*/
+./configure --disable-shared
+make
+cp gettext-tools/src/{msgfmt,msgmerge,xgettext} /usr/bin
+"
+
+touch ~/.cache/wispux-bootstrap/27
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/28 ]; then
+echo
+echo "STAGE 28 - bison"
+echo
+
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+cd $ashtray/bison/src/bison*/
+./configure --prefix=/usr
+make
+make install
+"
+
+touch ~/.cache/wispux-bootstrap/28
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/29 ]; then
+echo
+echo "STAGE 29 - perl"
+echo
+
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+cd $ashtray/perl/src/perl*/
+sh Configure -des \
+	-D prefix=/usr \
+	-D vendorprefix=/usr \
+	-D useshrplib
+make
+make install
+"
+
+touch ~/.cache/wispux-bootstrap/29
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/30 ]; then
+echo
+echo "STAGE 30 - python"
+echo
+
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+cd $ashtray/python/src/Python*/
+./configure --prefix=/usr --enable-shared --without-ensurepip
+make
+make install
+"
+
+touch ~/.cache/wispux-bootstrap/30
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/31 ]; then
+echo
+echo "STAGE 31 - texinfo"
+echo
+
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+cd $ashtray/texinfo/src/texinfo*/
+./configure --prefix=/usr
+make
+make install
+"
+
+touch ~/.cache/wispux-bootstrap/31
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/32 ]; then
+echo
+echo "STAGE 32 util-linux"
+echo
+
+(source ~/.cache/drag/stash/util-linux/PKGBUILD
+cd $ashtray/util-linux/src
+wget -nc https://kernel.org/pub/linux/utils/util-linux/v${pkgver%.*}/util-linux-$pkgver.tar.xz
+tar xJf util-linux-$pkgver.tar.xz)
+
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+cd $ashtray/util-linux/src/util-linux-*/
+./configure --libdir=/usr/lib \
+	--runstatedir=/run \
+	--disable-chfn-chsh \
+	--disable-login \
+	--disable-nologin \
+	--disable-su \
+	--disable-setpriv \
+	--disable-runuser \
+	--disable-pylibmount \
+	--disable-static \
+	--disable-liblastlog2 \
+	--without-python
+make
+make install
+"
+
+rm -rf $ashtray/util-linux/src/util-linux-*/
+
+touch ~/.cache/wispux-bootstrap/32
+fi
+if [ ! -f ~/.cache/wispux-bootstrap/33 ]; then
+echo
+echo "STAGE 33 - Hotbox"
+echo
+
+echo "Note:"
+echo "You may find yourself needing to edit and correct some of the PKGBUILD instructions on this stage."
+echo "To edit PKGBUILDs, use the snoop command."
+echo
+
+rm -rf $DRAG_ROOT/tools
+
+if (( ${GCCVER%%.*} >= 14 )) && [ ! -f $ashtray/expect/src/patched ]; then
+	cd $ashtray/expect/src
+	wget -nc https://www.linuxfromscratch.org/patches/downloads/expect/expect-5.45.4-gcc15-1.patch
+	cd expect*/
+	patch -Np1 -i ../expect-5.45.4-gcc15-1.patch
+	touch $ashtray/expect/src/patched
+	cd
+fi
+
+echo "smoke ${cigs[@]}" > $DRAG_ROOT/root/.cache/hotbox
+chmod +x $DRAG_ROOT/root/.cache/hotbox
+
+tmpfsmount
+chroot $DRAG_ROOT /bin/bash -c "
+source /etc/profile
+~/.cache/hotbox
+"
+
+touch ~/.cache/wispux-bootstrap/33
+fi
+
+echo
+echo "Done!"
