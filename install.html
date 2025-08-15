@@ -37,7 +37,7 @@
 			certain 32 bit libraries installed.
 			Please make sure that at least the following are installed:
 			</p>
-			<pre><code>wget
+			<pre><code>curl
 git
 openssl
 tar
@@ -139,13 +139,13 @@ swapon /dev/sda2</code></pre>
 			On the other hand, building a nomultilib toolchain on a multilib system is rather simple.
 			Now download your choice of script and make it executable:
 			</p>
-			<pre><code>wget https://catnipsta.github.io/wispux/wispux-bootstrap-nomultilib.sh
+			<pre><code>curl -LO https://catnipsta.github.io/wispux/wispux-bootstrap-nomultilib.sh
 chmod +x wispux-bootstrap-nomultilib.sh</code></pre>
 			<p class="instructions">
 			If you are feeling paranoid, you may also download the sha256 sum of the bootstrap and
 			verify it as shown below.
 			</p>
-			<pre><code>wget https://catnipsta.github.io/wispux/wispux-bootstrap-nomultilib-sha256
+			<pre><code>curl -LO https://catnipsta.github.io/wispux/wispux-bootstrap-nomultilib-sha256
 cat wispux-bootstrap-nomultilib-sha256
 sha256sum wispux-bootstrap-nomultilib.sh</code></pre>
 			<p class="instructions">

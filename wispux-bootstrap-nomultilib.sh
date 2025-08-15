@@ -85,11 +85,17 @@ texinfo
 vi
 python-markupsafe
 python-jinja
+eudev
 man-db
 procps-ng
 util-linux
 e2fsprogs
-wget
+
+libunistring
+libidn2
+libpsl
+pcre2
+curl
 git
 )
 
@@ -389,11 +395,11 @@ read -p "GCC version?   (default: $DGCCVER) " GCCVER
 [[ $GLIBCVER == "" ]] && GLIBCVER=$DGLIBCVER
 [[ $GCCVER == "" ]] && GCCVER=$DGCCVER
 
-wget --spider https://ftp.gnu.org/gnu/glibc/glibc-$GLIBCVER.tar.xz
-wget --spider https://ftp.gnu.org/gnu/gcc/gcc-$GCCVER/gcc-$GCCVER.tar.xz
+curl -If https://ftp.gnu.org/gnu/glibc/glibc-$GLIBCVER.tar.xz
+curl -If https://ftp.gnu.org/gnu/gcc/gcc-$GCCVER/gcc-$GCCVER.tar.xz
 
 cd $DRAG_ROOT/usr/src
-wget https://cdn.kernel.org/pub/linux/kernel/v${KRNLVER:0:1}.x/linux-$KRNLVER.tar.xz
+curl -O https://cdn.kernel.org/pub/linux/kernel/v${KRNLVER:0:1}.x/linux-$KRNLVER.tar.xz
 tar xJf linux-$KRNLVER.tar.xz
 rm linux-$KRNLVER.tar.xz
 
@@ -411,8 +417,11 @@ echo
 rm /usr/bin/snoop
 touch /usr/bin/snoop
 chmod +x /usr/bin/snoop
-stash ${cigs[@]}
+for i in ${cigs[@]}; do
+	[ $i != eudev ] && stash ${cigs[@]}
+done
 cp $DRAG_ROOT/usr/bin/snoop /usr/bin/snoop
+
 
 ### PATCH PKGBUILDS TO CORRECT SOURCE, CONFIGURATION, BUILD, AND DISABLE CERTAIN COMMANDS WHICH WOULD COMPLICATE THE PROCESS ###
 
@@ -555,6 +564,8 @@ make DESTDIR=$pkgdir install
 )
 EOF
 
+set +e
+
 sed -i 's/pkgver=.*/pkgver=8.6.16/' ~/.cache/drag/stash/tcl/PKGBUILD
 sed -i 's/pkgname=.*/pkgname=libxcrypt/' ~/.cache/drag/stash/libxcrypt/PKGBUILD
 sed -i '/--with-libpam/d; /--with-audit/d; /--enable-man/d' ~/.cache/drag/stash/shadow/PKGBUILD
@@ -563,11 +574,19 @@ sed -i '/case/,/esac/d' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i '/local _platform/d' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i 's/pkgbase/pkgname/' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i '/if \[/,/fi/d' ~/.cache/drag/stash/openssl/PKGBUILD
-sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,inetutils}/PKGBUILD 
-sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool}/PKGBUILD # checks fail or take too long
+sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/coreutils/PKGBUILD
+sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/tar/PKGBUILD
+sed -i 's/.\/configure/.\/configure --disable-vlock/' ~/.cache/drag/stash/kbd/PKGBUILD
+sed -i 's/make/CFLAGS=-Wno-error=implicit-function-declaration make/' ~/.cache/drag/stash/vi/PKGBUILD
+sed -i '/git /d; /--with-systemd/d' ~/.cache/drag/stash/procps-ng/PKGBUILD
+sed -i '/git /d; /jit/d' ~/.cache/drag/stash/pcre2/PKGBUILD
+sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/coreutils/PKGBUILD
+sed -i '/tracking/,/=libidn2/d' ~/.cache/drag/stash/libpsl/PKGBUILD
+sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl}/PKGBUILD 
+sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo}/PKGBUILD # checks fail or take too long
 
 ### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
-sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,check,wget,tcl}/PKGBUILD
+sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,tcl}/PKGBUILD
 
 (source ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/coreutils\/coreutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/coreutils/PKGBUILD
@@ -602,12 +621,8 @@ sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/automake\/auto
 source ~/.cache/drag/stash/groff/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/groff\/groff-$pkgver.tar.gz)/' ~/.cache/drag/stash/groff/PKGBUILD
 source ~/.cache/drag/stash/shadow/PKGBUILD
-sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/shadow-maint\/shadow\/releases\/download\/$pkgver\/shadow-$pkgver.tar.xz)/' ~/.cache/drag/stash/shadow/PKGBUILD
-source ~/.cache/drag/stash/check/PKGBUILD
-sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/libcheck\/check\/releases\/download\/$pkgver\/check-$pkgver.tar.gz)/' ~/.cache/drag/stash/check/PKGBUILD
-source ~/.cache/drag/stash/wget/PKGBUILD
-sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/wget\/wget-$pkgver.tar.gz)/' ~/.cache/drag/stash/wget/PKGBUILD)
-for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,check,wget}; do
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/shadow-maint\/shadow\/releases\/download\/$pkgver\/shadow-$pkgver.tar.xz)/' ~/.cache/drag/stash/shadow/PKGBUILD)
+for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow}; do
 	(source ~/.cache/drag/stash/$i/PKGBUILD
 	sed -i 's/cd .*pkgname.*/cd $pkgname-$pkgver/' ~/.cache/drag/stash/$i/PKGBUILD)
 done
@@ -749,6 +764,7 @@ package(){
 cd Python-$pkgver
 make DESTDIR=$pkgdir install
 ln -sf python3 $pkgdir/usr/bin/python
+ln -sf pip3 $pkgdir/usr/bin/pip
 ln -sf python3-config $pkgdir/usr/bin/python-config
 ln -sf idle3 $pkgdir/usr/bin/idle
 ln -sf pydoc3 $pkgdir/usr/bin/pydoc
@@ -769,6 +785,7 @@ pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
 }
 package(){
 cd flit_core-$pkgver
+mkdir -p $pkgdir
 pip3 install --root=$pkgdir --no-index --find-links dist flit_core
 }
 EOF
@@ -787,6 +804,7 @@ pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
 }
 package(){
 cd wheel-$pkgver
+mkdir -p $pkgdir
 pip3 install --root=$pkgdir --no-index --find-links dist wheel
 }
 EOF
@@ -805,6 +823,7 @@ pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
 }
 package(){
 cd setuptools-$pkgver
+mkdir -p $pkgdir
 pip3 install --root=$pkgdir --no-index --find-links dist setuptools
 }
 EOF
@@ -823,6 +842,7 @@ pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
 }
 package(){
 cd markupsafe-$pkgver
+mkdir -p $pkgdir
 pip3 install --root=$pkgdir --no-index --find-links dist MarkupSafe
 }
 EOF
@@ -841,6 +861,7 @@ pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
 }
 package(){
 cd jinja2-$pkgver
+mkdir -p $pkgdir
 pip3 install --root=$pkgdir --no-index --find-links dist Jinja2
 }
 EOF
@@ -859,6 +880,7 @@ python configure.py --bootstrap --verbose
 }
 package(){
 cd ninja-$pkgver
+mkdir -p $pkgdir/usr/bin $pkgdir/usr/share/{bash-completion/completions,zsh/site-functions}
 install -vDm755 ninja $pkgdir/usr/bin/
 install -vDm644 misc/bash-completion $pkgdir/usr/share/bash-completion/completions/ninja
 install -vDm644 misc/zsh-completion $pkgdir/usr/share/zsh/site-functions/_ninja
@@ -869,7 +891,8 @@ EOF
 cat > ~/.cache/drag/stash/meson/PKGBUILD << EOF
 pkgname=meson
 pkgver=$pkgver
-source=(https://github.com/mesonbuild/meson/releases/download/$pkgver/meson-$pkgver.tar.gz)
+source=(https://github.com/mesonbuild/meson/releases/download/$pkgver/meson-$pkgver.tar.gz
+arch-meson)
 EOF
 )
 cat >> ~/.cache/drag/stash/meson/PKGBUILD << "EOF"
@@ -879,9 +902,11 @@ pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
 }
 package(){
 cd meson-$pkgver
+mkdir -p $pkgdir
 pip3 install --root=$pkgdir --no-index --find-links dist meson
 install -vDm644 data/shell-completions/bash/meson $pkgdir/usr/share/bash-completion/completions/meson
 install -vDm644 data/shell-completions/zsh/_meson $pkgdir/usr/share/zsh/site-functions/_meson
+install -D ../arch-meson -t "$pkgdir/usr/bin"
 }
 EOF
 
@@ -902,6 +927,25 @@ make
 }
 package(){
 cd gdbm-$pkgver
+make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/check/PKGBUILD
+cat > ~/.cache/drag/stash/check/PKGBUILD << EOF
+pkgname=check
+pkgver=$pkgver
+source=(https://github.com/libcheck/check/releases/download/$pkgver/check-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/check/PKGBUILD << "EOF"
+build(){
+cd check-$pkgver
+./configure --prefix=/usr --disable-static
+make
+}
+package(){
+cd check-$pkgver
 make DESTDIR=$pkgdir install
 }
 EOF
@@ -942,6 +986,122 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
+(source ~/.cache/drag/stash/kmod/PKGBUILD
+cat > ~/.cache/drag/stash/kmod/PKGBUILD << EOF
+pkgname=kmod
+pkgver=$pkgver
+source=(https://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/kmod/PKGBUILD << "EOF"
+build(){
+cd kmod-$pkgver
+
+mkdir -p build
+cd build
+
+meson setup --prefix=/usr .. \
+	--sbindir=/usr/sbin \
+	--buildtype=release \
+	-Dmanpages=false
+meson compile
+}
+package(){
+cd kmod-$pkgver/build
+
+meson install --destdir=$pkgdir
+}
+EOF
+
+(source ~/.cache/drag/stash/util-linux/PKGBUILD
+cat > ~/.cache/drag/stash/util-linux/PKGBUILD << EOF
+pkgname=util-linux
+pkgver=$pkgver
+source=(https://kernel.org/pub/linux/utils/util-linux/v${pkgver%.*}/util-linux-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/util-linux/PKGBUILD << "EOF"
+build(){
+cd util-linux-$pkgver
+
+./configure --bindir=/usr/bin \
+	--libdir=/usr/lib \
+	--runstatedir=/run \
+	--disable-liblastlog2
+make
+}
+package(){
+cd util-linux-$pkgver
+
+make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/curl/PKGBUILD
+cat > ~/.cache/drag/stash/curl/PKGBUILD << EOF
+pkgname=curl
+pkgver=$pkgver
+source=(https://curl.se/download/curl-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/curl/PKGBUILD << "EOF"
+build(){
+cd curl-$pkgver
+
+./configure --prefix=/usr --with-openssl --with-ca-path=/etc/ssl/certs
+make
+}
+package(){
+cd curl-$pkgver
+
+make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/zlib/PKGBUILD
+cat > ~/.cache/drag/stash/zlib/PKGBUILD << EOF
+pkgname=zlib
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/zlib/PKGBUILD << "EOF"
+build(){
+cd zlib-$pkgver
+
+./configure --prefix=/usr 
+make
+}
+package(){
+cd zlib-$pkgver
+
+make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/git/PKGBUILD
+cat > ~/.cache/drag/stash/git/PKGBUILD << EOF
+pkgname=git
+pkgver=$pkgver
+source=(https://www.kernel.org/pub/software/scm/git/git-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/git/PKGBUILD << "EOF"
+build(){
+cd git-$pkgver
+
+./configure --prefix=/usr
+make
+}
+package(){
+cd git-$pkgver
+
+make DESTDIR=$pkgdir install
+}
+EOF
+
+set -e
+
 touch ~/.cache/wispux-bootstrap/3
 fi
 if [ ! -f ~/.cache/wispux-bootstrap/4 ]; then
@@ -949,8 +1109,24 @@ echo
 echo "STAGE 4 - Download source"
 echo
 
-
 pinch ${cigs[@]}
+
+mkdir -p $ashtray/ca-certificates/src $DRAG_ROOT/etc/ssl/certs
+cd $ashtray/ca-certificates/src
+curl -Lqo ca-certificates.crt https://curl.se/ca/cacert.pem
+curl -Lqo certsha256sum       https://curl.se/ca/cacert.pem.sha256
+actual=$(sha256sum ca-certificates.crt)
+actual=${actual%%\ *}
+if [[ "$(cat certsha256sum)" == *$actual* ]]; then
+        echo "Verified ca-certificates"
+        echo
+        cp ca-certificates.crt $DRAG_ROOT/etc/ssl/certs/
+        cp ca-certificates.crt $DRAG_ROOT/etc/ssl/cert.pem
+else
+	echo "CHECKSUM VALIDATION FAILED FOR ca-certificates!"
+	echo
+	exit 1
+fi
 
 touch ~/.cache/wispux-bootstrap/4
 fi
@@ -1173,6 +1349,8 @@ echo
 echo "STAGE 14 - diffutils"
 echo
 
+touch $DRAG_ROOT/usr/include/getopt-cdefs.h
+
 cd $ashtray/diffutils/src/diffutils*/
 
 export CFLAGS="-Wno-error"
@@ -1213,6 +1391,8 @@ cd $ashtray/findutils/src/findutils*/
 ./configure --prefix=/usr --localstatedir=/var/lib/locate --host=$TGT --build=$(build-aux/config.guess)
 make
 make DESTDIR=$DRAG_ROOT install
+
+pinch findutils
 
 touch ~/.cache/wispux-bootstrap/16
 fi
@@ -1492,15 +1672,10 @@ echo
 echo "STAGE 32 util-linux"
 echo
 
-(source ~/.cache/drag/stash/util-linux/PKGBUILD
-cd $ashtray/util-linux/src
-wget -nc https://kernel.org/pub/linux/utils/util-linux/v${pkgver%.*}/util-linux-$pkgver.tar.xz
-tar xJf util-linux-$pkgver.tar.xz)
-
 tmpfsmount
 chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
-cd $ashtray/util-linux/src/util-linux-*/
+cd $ashtray/util-linux/src/util-linux*/
 ./configure --libdir=/usr/lib \
 	--runstatedir=/run \
 	--disable-chfn-chsh \
@@ -1535,7 +1710,7 @@ rm -rf $DRAG_ROOT/tools
 
 if (( ${GCCVER%%.*} >= 14 )) && [ ! -f $ashtray/expect/src/patched ]; then
 	cd $ashtray/expect/src
-	wget -nc https://www.linuxfromscratch.org/patches/downloads/expect/expect-5.45.4-gcc15-1.patch
+	[ ! -f expect-5.45.4-gcc15-1.patch ] && curl -LO https://www.linuxfromscratch.org/patches/downloads/expect/expect-5.45.4-gcc15-1.patch
 	cd expect*/
 	patch -Np1 -i ../expect-5.45.4-gcc15-1.patch
 	touch $ashtray/expect/src/patched
