@@ -251,9 +251,10 @@ mount -t sysfs sysfs /sys
 mount -t devtmpfs devtmpfs /dev
 mkdir /dev/pts /dev/shm
 mount -t devpts devpts /dev/pts
-mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /dev/shm
-mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /run
-mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /tmp
+mount -t tmpfs -o nosuid,nodev tmpfs /dev/shm
+mount -t tmpfs -o nosuid,nodev tmpfs /run
+chmod 0755 /run
+mount -t tmpfs -o nosuid,nodev tmpfs /tmp
 mount -a
 swapon -a
 
@@ -263,9 +264,9 @@ export LANG LC_ALL LC_COLLATE
 hostname "$(cat /etc/hostname)"
 
 #Setup udev
-#udevd --daemon
-#udevadm trigger
-#udevadm settle
+udevd --daemon
+udevadm trigger
+udevadm settle
 
 #Setup ethernet
 #ip link set lo up
@@ -401,7 +402,6 @@ curl -If https://ftp.gnu.org/gnu/gcc/gcc-$GCCVER/gcc-$GCCVER.tar.xz
 cd $DRAG_ROOT/usr/src
 curl -O https://cdn.kernel.org/pub/linux/kernel/v${KRNLVER:0:1}.x/linux-$KRNLVER.tar.xz
 tar xJf linux-$KRNLVER.tar.xz
-rm linux-$KRNLVER.tar.xz
 
 echo $KRNLVER  > ~/.cache/wispux-bootstrap/krnlver
 echo $GLIBCVER > ~/.cache/wispux-bootstrap/glibcver
@@ -418,7 +418,7 @@ rm /usr/bin/snoop
 touch /usr/bin/snoop
 chmod +x /usr/bin/snoop
 for i in ${cigs[@]}; do
-	[ $i != eudev ] && stash ${cigs[@]}
+	[ $i != eudev ] && stash $i
 done
 cp $DRAG_ROOT/usr/bin/snoop /usr/bin/snoop
 
@@ -549,19 +549,34 @@ EOF
 
 mkdir -p ~/.cache/drag/stash/eudev
 cat > ~/.cache/drag/stash/eudev/PKGBUILD << "EOF"
-pkgname="eudev"
-pkgver="9e7c4e7"
-source=("git+https://github.com/eudev-project/eudev.git#commit=$pkgver")
+pkgname=eudev
+pkgver=3.2.14
+source=(https://github.com/eudev-project/eudev/releases/download/v$pkgver/eudev-$pkgver.tar.gz)
 
-build=(
-cd eudev
-./autogen.sh
+build() {
+cd eudev-$pkgver
 ./configure --prefix=/usr --sysconfdir=/etc --disable-static
-make)
+make
+}
 
-package=(
+package() {
+cd eudev-$pkgver
 make DESTDIR=$pkgdir install
-)
+}
+EOF
+
+mkdir -p ~/.cache/drag/stash/linux-firmware
+cat > ~/.cache/drag/stash/linux-firmware/PKGBUILD << EOF
+pkgname=linux-firmware
+pkgver=$(date +%Y%m%d)
+EOF
+cat >> ~/.cache/drag/stash/linux-firmware/PKGBUILD << "EOF"
+source=(https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git)
+
+package() {
+mkdir -p $pkgdir/usr/lib/
+mv linux-firmware $pkgdir/usr/lib/firmware
+}
 EOF
 
 set +e
@@ -1048,7 +1063,7 @@ cat >> ~/.cache/drag/stash/curl/PKGBUILD << "EOF"
 build(){
 cd curl-$pkgver
 
-./configure --prefix=/usr --with-openssl --with-ca-path=/etc/ssl/certs
+./configure --prefix=/usr --with-openssl --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
 make
 }
 package(){
@@ -1213,6 +1228,13 @@ make mrproper
 make headers
 find usr/include -type f ! -name '*.h' -delete
 cp -r usr/include $DRAG_ROOT/usr
+
+cd /usr/src
+rm -rf linux-$KRNLVER
+tar xJf linux-$KRNLVER.tar.xz
+rm linux-$KRNLVER.tar.xz
+
+sed -i 's/EXTRAVERSION =/EXTRAVERSION = -wispux/' linux-$KRNLVER/Makefile
 
 touch ~/.cache/wispux-bootstrap/7
 fi
