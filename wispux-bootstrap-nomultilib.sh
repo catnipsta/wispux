@@ -268,11 +268,17 @@ udevd --daemon
 udevadm trigger
 udevadm settle
 
-#Setup ethernet
+# Manual ethernet
 #ip link set lo up
 #ip link set eth0 up
 #ip addr add XXX.XXX.XXX.XXX/XX dev eth0
 #ip route add default via XXX.XXX.XXX.XXX
+
+# wpa_supplicant
+#wpa_supplicant -B -iwlan0 -c/etc/wpa_supplicant.conf
+
+# dhcpcd
+#dhcpcd -b
 
 setsid agetty --noclear tty1 38400 linux &
 setsid agetty tty2 38400 linux &
@@ -365,6 +371,8 @@ echo "Halting..."
 echo h > /proc/sysrq-trigger
 EOF
 	chmod +x $DRAG_ROOT/sbin/poweroff $DRAG_ROOT/sbin/reboot $DRAG_ROOT/sbin/halt
+	cp $DRAG_ROOT/sbin/{poweroff,reboot,halt} $DRAG_ROOT/usr/bin
+
 	echo "Pinching drag"
 	cd
 	
@@ -597,8 +605,8 @@ sed -i '/git /d; /--with-systemd/d' ~/.cache/drag/stash/procps-ng/PKGBUILD
 sed -i '/git /d; /jit/d' ~/.cache/drag/stash/pcre2/PKGBUILD
 sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -i '/tracking/,/=libidn2/d' ~/.cache/drag/stash/libpsl/PKGBUILD
-sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl}/PKGBUILD 
-sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo}/PKGBUILD # checks fail or take too long
+sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
+sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make}/PKGBUILD
 
 ### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
 sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,tcl}/PKGBUILD
@@ -982,17 +990,23 @@ export BUILD_BZIP2=0
 sh Configure -des \
 	-Dprefix=/usr \
 	-Dvendorprefix=/usr \
-	-Dprivlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
-	-Darchlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
-	-Dsitelib=/usr/lib/perl5/${pkgver%.*}/site_perl \
-	-Dsitearch=/usr/lib/perl5/${pkgver%.*}/site_perl \
-	-Dvendorlib=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
-	-Dvendorarch=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
-	-Dman1dir=/usr/share/man/man1 \
-	-Dman3dir=/usr/share/man/man3 \
-	-Dpager="/usr/bin/less -isR" \
 	-Duseshrplib \
-	-Dusethreads
+	-Dusethreads \
+	-Dprivlib=/usr/share/perl5/core_perl \
+	-Darchlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
+	-Dsitelib=/usr/share/perl5/site_perl \
+	-Dsitearch=/usr/lib/perl5/${pkgver%.*}/site_perl \
+	-Dvendorlib=/usr/share/perl5/vendor_perl \
+	-Dvendorarch=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
+	-Dscriptdir=/usr/bin/core_perl \
+	-Dsitescript=/usr/bin/site_perl \
+	-Dvendorscript=/usr/bin/vendor_perl \
+	-Dinc_version_list=none \
+	-Dman1ext=1perl -Dman3ext=3perl \
+	-Dlddlflags="-shared ${LDFLAGS}" \
+	-Dldflags="${LDFLAGS}" \
+	-Dloclibpth="/usr/lib/db5.3" \
+	-Dlocincpth="/usr/include/db5.3"
 make
 }
 package(){
@@ -1229,7 +1243,7 @@ make headers
 find usr/include -type f ! -name '*.h' -delete
 cp -r usr/include $DRAG_ROOT/usr
 
-cd /usr/src
+cd $DRAG_ROOT/usr/src
 rm -rf linux-$KRNLVER
 tar xJf linux-$KRNLVER.tar.xz
 rm linux-$KRNLVER.tar.xz
@@ -1714,8 +1728,6 @@ make
 make install
 "
 
-rm -rf $ashtray/util-linux/src/util-linux-*/
-
 touch ~/.cache/wispux-bootstrap/32
 fi
 if [ ! -f ~/.cache/wispux-bootstrap/33 ]; then
@@ -1747,6 +1759,8 @@ chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
 ~/.cache/hotbox
 "
+
+find $DRAG_ROOT/usr -depth -name $(uname -m)-wispux-linux-gnu\* | xargs rm -rf
 
 touch ~/.cache/wispux-bootstrap/33
 fi
