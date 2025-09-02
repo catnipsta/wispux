@@ -218,8 +218,6 @@ nogroup:x:65534:
 EOF
 	echo "Pinching /etc/profile"
 	cat > $DRAG_ROOT/etc/profile << "EOF"
-# /etc/profile
-
 umask 022
 
 appendpath () {
@@ -246,6 +244,8 @@ if [ -d /etc/profile.d/ ]; then
         done
 fi
 EOF
+sed -i "s/'/\"/g" $DRAG_ROOT/etc/profile
+
 	echo "Pinching /etc/resolv.conf"
 	cp --dereference /etc/resolv.conf $DRAG_ROOT/etc/
 	echo
@@ -1760,9 +1760,12 @@ tmpfsmount
 chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
 ~/.cache/hotbox
+
+ln -sf /usr/bin/cc /usr/bin/c99
 "
 
 find $DRAG_ROOT/usr -depth -name $(uname -m)-wispux-linux-gnu\* | xargs rm -rf
+sed -i 's/#//' $DRAG_ROOT/etc/profile
 
 touch ~/.cache/wispux-bootstrap/33
 fi
