@@ -248,12 +248,13 @@ echo "LANG=ru_RU.UTF-8" > /etc/locale.conf</code></pre>
 			To configure your kernel, you can either manually edit /usr/src/linux-x.x.x/.config or you can use a tool like
 			menuconfig or nconfig. You can set the variable EXTRAVERSION found in the Makefile to "-wispux" to generate a
 			kernel with the ending "-wispux". 
-			Below is an example of how you can configure, compile, and install the Linux kernel 6.1.142.
+			Below is an example of how you can configure, compile, and install the Linux kernel 6.12.44.
 			</p>
-			<pre><code>cd /usr/src/linux-6.1.142
+			<pre><code>cd /usr/src/linux-6.12.44
 make mrproper
 make nconfig
 make
+make modules_install
 make install</code></pre>
 			<b>8. User and password setup</b>
 			<p class="instructions">
@@ -325,6 +326,7 @@ reboot</code></pre>
 		</main>
 		<footer>
 			<p>2025 Catnipsta - Nikolai Klover - GPLv3</p>
+                        <p>Linux® is the registered trademark of Linus Torvalds in the U.S. and other countries.</p>
 		</footer>
 	</body>
 </html>

@@ -158,7 +158,7 @@ chmod 755 $DRAG_ROOT
 cd $DRAG_ROOT
 
 mkdir -pv ./{etc,var,boot,home,mnt,opt,dev,proc,sys,run/lock,root,tmp} \
-	./usr/{bin,include,lib/locale,local/{bin,include,lib,lib64,sbin,share,src},sbin,src} \
+	./usr/{bin,include,lib/locale,local/{bin,include,lib,sbin,share,src},sbin,src} \
 	./usr/local/share/{doc,info,locale,misc,terminfo,zoneinfo,man/man{1..8}} \
 	./usr/lib/firmware ./var/{cache,lib,log,opt,spool,mail,tmp}
 ln -sfv usr/bin bin
@@ -177,6 +177,11 @@ touch var/log/{btmp,lastlog,faillog,wtmp}
 chgrp -v utmp var/log/lastlog
 chmod -v 664  var/log/lastlog
 chmod -v 600  var/log/btmp
+
+if [[ $(uname -m) == "i"*"86" ]]; then
+	mv lib64 lib32
+	mv usr/lib64 usr/lib32
+fi
 
 	echo "Pinching /etc/passwd"
 	cat > $DRAG_ROOT/etc/passwd << "EOF"
@@ -232,8 +237,8 @@ export ashtray=~/.cache/drag/ashtray
 EOF
 echo "export MAKEFLAGS='"$MAKEFLAGS"'" >> $DRAG_ROOT/etc/profile
 	cat >> $DRAG_ROOT/etc/profile << "EOF"
-export CFLAGS=""
-export CXXFLAGS="$CFLAGS"
+#export CFLAGS="-march=native -O2 -pipe"
+#export CXXFLAGS="$CFLAGS"
 
 if [ -d /etc/profile.d/ ]; then
         for f in /etc/profile.d/*.sh; do
@@ -241,6 +246,10 @@ if [ -d /etc/profile.d/ ]; then
         done
 fi
 EOF
+	echo "Pinching /etc/resolv.conf"
+	cp --dereference /etc/resolv.conf $DRAG_ROOT/etc/
+	echo
+
 	echo "Pinching init"
 	cat > $DRAG_ROOT/sbin/init << "EOF"
 #!/bin/sh
@@ -394,7 +403,7 @@ echo
 
 rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
 
-DKRNLVER=6.12.40
+DKRNLVER=6.12.44
 DGLIBCVER=2.41
 DGCCVER=14.2.0
 
@@ -424,13 +433,9 @@ echo
 echo "STAGE 3 - Download PKGBUILDs"
 echo
 
-rm /usr/bin/snoop
-touch /usr/bin/snoop
-chmod +x /usr/bin/snoop
 for i in ${cigs[@]}; do
-	[ $i != eudev ] && stash $i
+	[ $i != eudev ] && stash -ns $i
 done
-cp $DRAG_ROOT/usr/bin/snoop /usr/bin/snoop
 
 
 ### PATCH PKGBUILDS TO CORRECT SOURCE, CONFIGURATION, BUILD, AND DISABLE CERTAIN COMMANDS WHICH WOULD COMPLICATE THE PROCESS ###
@@ -992,23 +997,17 @@ export BUILD_BZIP2=0
 sh Configure -des \
 	-Dprefix=/usr \
 	-Dvendorprefix=/usr \
-	-Duseshrplib \
-	-Dusethreads \
-	-Dprivlib=/usr/share/perl5/core_perl \
+	-Dprivlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
 	-Darchlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
-	-Dsitelib=/usr/share/perl5/site_perl \
+	-Dsitelib=/usr/lib/perl5/${pkgver%.*}/site_perl \
 	-Dsitearch=/usr/lib/perl5/${pkgver%.*}/site_perl \
-	-Dvendorlib=/usr/share/perl5/vendor_perl \
+	-Dvendorlib=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
 	-Dvendorarch=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
-	-Dscriptdir=/usr/bin/core_perl \
-	-Dsitescript=/usr/bin/site_perl \
-	-Dvendorscript=/usr/bin/vendor_perl \
-	-Dinc_version_list=none \
-	-Dman1ext=1perl -Dman3ext=3perl \
-	-Dlddlflags="-shared ${LDFLAGS}" \
-	-Dldflags="${LDFLAGS}" \
-	-Dloclibpth="/usr/lib/db5.3" \
-	-Dlocincpth="/usr/include/db5.3"
+	-Dman1dir=/usr/share/man/man1 \
+	-Dman3dir=/usr/share/man/man3 \
+	-Dpager="/usr/bin/less -isR" \
+	-Duseshrplib \
+	-Dusethreads
 make
 }
 package(){
