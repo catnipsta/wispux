@@ -181,37 +181,23 @@ sha256sum wispux-bootstrap-nomultilib.sh</code></pre>
 			<b>5. STAGE 33</b>
 			<p class="instructions">
 			If you have ever performed or studied LFS, you can think of STAGE 33 like Chapter 8.
-			Unlike LFS, STAGE 33 is still semi-automated. I say semi-automated because it uses
+			Unlike LFS, STAGE 33 is mostly automated. I say mostly automated because it uses
 			Arch's PKGBUILDs for installing packages. Many PKGBUILDs are patched by the bootstrap
-			and while some packages will install without any manual intervention, many PKGBUILDs are going to require modification.
+			and while many packages will install without any manual intervention, some PKGBUILDs are going to require modification.
 			Each time a packge fails to compile, it will almost definitely be because of the PKGBUILD.
 			What better time to learn the drag package manager than now?
 			</p>
 			<p class="instructions">
-			You can edit a package's PKGBUILD by running the command:
+			You can edit bc's PKGBUILD by running the command:
 			</p>
-			<code>snoop</code>
+			<code>snoop bc</code>
 			<p class="instructions">
-			Many packages will fail due to trying to run autoreconf or bootstrap
-			commands on a system at this stage. You should simply remove these lines. Once autoconf is installed however, you
-			should keep the autoreconf lines.
-			Other PKGBUILDs will have complex configure options that aren't supported yet on your minimal system. To fix these,
-			remove or modify these options. Some packages fail because of tests. Remember that not all tests 
+			Some PKGBUILDs will have complex configure options that aren't supported yet on your minimal system. To fix these,
+			remove or modify these options. Others will fail because of tests. Remember that not all tests 
 			are expected to pass since this is in a chroot environment. To disable tests, just remove the whole check
 			function from a PKGBUILD. Arch's PKGBUILDs also contain lots of install commands in the package functions which don't
 			always work, especially after you've modified a PKGBUILD. If you come across lines in the package function attempting
 			to install or modify files which don't exist, remove them.
-			</p>
-			<p class="instructions">
-			I can't explain how you can patch every single PKGBUILD in this guide,
-			but I will give an example of how zlib's PKGBUILD should be fixed and why.
-			The first thing you may notice when editing zlib's PKGBUILD is that it contains a line with the command
-			autoreconf. That command doesn't exist on the system yet, so you must delete this
-			line. Because autoreconf doesn't run, the configure script for minizip doesn't get created, and
-			therefore it cannot be compiled. In order to stop minizip from compiling, we must
-			remove any lines that attempt to cd into minizip's directory, configure it, and make it.
-			Finally, minizip is still being attempted to package because of the line near the top that includes
-			minizip as the second pkgname. Remove the "minizip" from pkgname and zlib should compile cleanly.
 			</p>
 			<b>6. Chroot</b>
 			<p class="instructions">
@@ -227,6 +213,15 @@ export PS1="(chroot) ${PS1}"</code></pre>
 			<pre><code>localedef -i ru_RU -f UTF-8 ru_RU.UTF-8
 echo "LANG=ru_RU.UTF-8" > /etc/locale.conf</code></pre>
 			<p class="instructions">
+			Set your hostname in the /etc/hostname file.
+			</p>
+			<code>echo "wispux-desktop" > /etc/hostname</code>
+			<p class="instructions">
+			Create a file called /etc/hosts and follow a scheme similar to the one shown below.
+			</p>
+			<pre><code>127.0.0.1    localhost wispux-desktop
+::1          localhost
+			<p class="instructions">
 			To set your timezone, tzdata needs to be installed.
 			</p>
 			<code>smoke tzdata</code>
@@ -236,14 +231,6 @@ echo "LANG=ru_RU.UTF-8" > /etc/locale.conf</code></pre>
 			</p>
 			<pre><code>ln -sf /usr/share/zoneinfo/??? /etc/localtime</code></pre>
 			<b>7. Compiling the Kernel</b>
-			<p class="instructions">
-			Everyone is going to compile their kernel differently depending on their hardware, and personal preferences.
-			If you are building a multilib system, you must enable IA32 Emulation.
-			Some people prefer to use an initramfs to load kernel modules at the init stage, while others compile everything
-			they need directly into their kernel. This guide will not be discussing the setup initramfs, though you
-			can find some documentation on initramfs from sources like <a href="https://gentoo.org">gentoo.org</a>.
-			If you do end up using an initramfs, remember that you will have to setup it up in your boot loader.
-			</p>
 			<p class="instructions">
 			To configure your kernel, you can either manually edit /usr/src/linux-x.x.x/.config or you can use a tool like
 			menuconfig or nconfig. You can set the variable EXTRAVERSION found in the Makefile to "-wispux" to generate a
@@ -255,8 +242,9 @@ make mrproper
 make nconfig
 make
 make modules_install
-cp vmlinuz /boot/vmlinuz-6.12.44-wispux
-cp System.map /boot/System.map-6.12.44</code></pre>
+make install
+mv /boot/vmlinuz /boot/vmlinuz-6.12.44-wispux
+mv /boot/System.map /boot/System.map-6.12.44</code></pre>
 			<b>8. User and password setup</b>
 			<p class="instructions">
 			Setting up users and passwords is rather simple compared to the rest of this guide.
@@ -313,10 +301,9 @@ grub-mkconfig /boot/grub/grub.cfg</code></pre>
 grub-mkconfig /boot/grub/grub.cfg</code></pre>
 			<b>10. Reboot</b>
 			<p class="instructions">
-			Some people may choose at this point to install and set up certain packages such as eudev and sudo.
-			Unless you have cleared the root user's stash, you should already have a PKGBUILD to assist you with eudev.
-			Unlike other distros, Wispux does not have an init system unless you install one yourself. 
-			It does however have a basic shell script at /sbin/init that you can add your startup services to.
+			Some people may choose at this point to install and set up certain packages such as sudo.
+			It would also be recommended at this point to review and edit the /sbin/init script so that you know what
+			commands are going to run on startup.
 			</p>
 			<p class="instructions">
 			You may now exit the chroot, unmount your newly created system, and reboot.
