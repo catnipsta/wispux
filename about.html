@@ -23,15 +23,18 @@ It fetches PKGBUILDs from Arch Linux's repositories and the AUR to
 maximize package support. Drag makes editing PKGBUILDs easy in order to put the user in control of their system and it
 features file tracking for installed packages, allowing for 
 a clean removal process. Unlike most package managers, drag does not support automatic dependency resolution, though
-it does possess the ability list the recommended dependencies found in the PKGBUILDs.
+it can still list the recommended dependencies found in the PKGBUILDs.
 			</p>
 			<b>System Requirements</b>
 			<p class="about">
-Because Wispux is a source distribution that is built from scratch, you must be comfortable with your computer specifications.
-Building Wispux on old hardware could take quite some time due to large packages like glibc and gcc.
-Wispux does not rely on a singular processor type, making Wispux a universal distribution.
-The bootstrap follows a similar path to LFS. This also means that by default it compiles glibc and other gnu tools. If you are opposed
-to this or any other aspect of the bootstrap, feel free to edit it and make it your own. Any help and suggestions for Wispux are greatly appreciated.
+Wispux is a source distribution built from scratch, so you must be comfortable with your computer specifications.
+Building Wispux on old hardware can take a long time due to large packages like glibc and gcc.
+Though I have built Wispux on a system with one procesor and 1 GB of RAM, so that isn't to say it's impossible.
+Wispux has currently only been tested on x86 and x86_64 systems, but it may be compatible with other architectures with minimal modifications to the bootstrap.
+The bootstrap follows a very similar path to LFS. This also means that it compiles Glibc, GCC, and other GNU tools. If you are opposed
+to this or any other aspect of the bootstrap, feel free to edit it and make it your own. The installation guide doesn't recommend deleting your
+cache until after the installation for safety purposes, so when following closely alongside the guide, it is recommended to have a hard drive of at least 20 GB.
+Any help and suggestions for Wispux are greatly appreciated.
 </p>
 			<b>Initial Install</b>
 			<p class="about">
@@ -67,7 +70,7 @@ Wispux is meant for people who have a deep understanding of Linux systems and ma
 compiling packages to suit their needs. Compiling packages, even with the default
 PKGBUILDs downloaded from Arch, will challenge you. You will run into all sorts of
 compilation, configuration, and run-time errors. If you struggle to compile or get packages
-to work on Gentoo or other source-based distributions, you will almost definitely struggle harder on Wispux.
+to work on Gentoo or other source-based distributions, you will most definitely struggle harder on Wispux.
 Now for those who understand how to compile and configure packages manually for your system, you may very
 well find Wispux to be just what you've been needing.
 			</p>

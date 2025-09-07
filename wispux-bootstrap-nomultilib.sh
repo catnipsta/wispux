@@ -404,7 +404,7 @@ echo
 rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
 
 DKRNLVER=6.12.44
-DGLIBCVER=2.41
+DGLIBCVER=2.42
 DGCCVER=14.2.0
 
 read -p "What Linux kernel version do you wish to use? (default: $DKRNLVER) " KRNLVER
@@ -451,7 +451,6 @@ source=("https://ftp.gnu.org/gnu/glibc/glibc-$pkgver.tar.xz")
 build() {
 cd glibc-$pkgver
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -500,7 +499,6 @@ source=("https://ftp.gnu.org/gnu/gcc/gcc-$pkgver/gcc-$pkgver.tar.xz")
 build() {
 cd gcc-$pkgver
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -536,7 +534,6 @@ source=("git+https://sourceware.org/git/binutils-gdb.git")
 build() {
 cd binutils-gdb/
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -594,6 +591,26 @@ mv linux-firmware $pkgdir/usr/lib/firmware
 }
 EOF
 
+stash -ns grub
+(source ~/.cache/drag/stash/grub/PKGBUILD
+cat > ~/.cache/drag/stash/grub/PKGBUILD << EOF
+pkgname=grub
+pkgver=$_pkgver
+EOF
+)
+cat >> ~/.cache/drag/stash/grub/PKGBUILD << "EOF"
+source=(https://ftp.gnu.org/gnu/grub/grub-$pkgver.tar.xz)
+build(){
+cd grub-$pkgver
+./configure --prefix=/usr --sysconfdir=/etc --disable-efiemu --disable-werror
+make
+}
+package() {
+cd grub-$pkgver
+make DESTDIR=$pkgdir install
+}
+EOF
+
 set +e
 
 sed -i 's/pkgver=.*/pkgver=8.6.16/' ~/.cache/drag/stash/tcl/PKGBUILD
@@ -618,43 +635,25 @@ sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi
 ### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
 sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,tcl}/PKGBUILD
 
-(source ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/coreutils\/coreutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/coreutils/PKGBUILD
-source ~/.cache/drag/stash/diffutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/diffutils\/diffutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/diffutils/PKGBUILD
-source ~/.cache/drag/stash/file/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/astron.com\/pub\/file\/file-$pkgver.tar.gz)/' ~/.cache/drag/stash/file/PKGBUILD
-source ~/.cache/drag/stash/findutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/findutils\/findutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/findutils/PKGBUILD
-source ~/.cache/drag/stash/grep/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/grep\/grep-$pkgver.tar.xz)/' ~/.cache/drag/stash/grep/PKGBUILD
-source ~/.cache/drag/stash/gzip/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/gzip\/gzip-$pkgver.tar.xz)/' ~/.cache/drag/stash/gzip/PKGBUILD
-source ~/.cache/drag/stash/patch/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/patch\/patch-$pkgver.tar.xz)/' ~/.cache/drag/stash/patch/PKGBUILD
-source ~/.cache/drag/stash/flex/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/westes\/flex\/releases\/download\/v$pkgver\/flex-$pkgver.tar.gz)/' ~/.cache/drag/stash/flex/PKGBUILD
-source ~/.cache/drag/stash/pkgconf/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/distfiles.ariadne.space\/pkgconf\/pkgconf-$pkgver.tar.xz)/' ~/.cache/drag/stash/pkgconf/PKGBUILD
-source ~/.cache/drag/stash/attr/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/attr\/attr-$pkgver.tar.gz)/' ~/.cache/drag/stash/attr/PKGBUILD
-source ~/.cache/drag/stash/acl/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/acl\/acl-$pkgver.tar.xz)/' ~/.cache/drag/stash/acl/PKGBUILD
-source ~/.cache/drag/stash/psmisc/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/sourceforge.net\/projects\/psmisc\/files\/psmisc\/psmisc-$pkgver.tar.xz)/' ~/.cache/drag/stash/psmisc/PKGBUILD
-source ~/.cache/drag/stash/libtool/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/libtool\/libtool-${pkgver%%+*}.tar.xz)/' ~/.cache/drag/stash/libtool/PKGBUILD
-source ~/.cache/drag/stash/inetutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/inetutils\/inetutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/inetutils/PKGBUILD
-source ~/.cache/drag/stash/automake/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/automake\/automake-$pkgver.tar.xz)/' ~/.cache/drag/stash/automake/PKGBUILD
-source ~/.cache/drag/stash/groff/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/groff\/groff-$pkgver.tar.gz)/' ~/.cache/drag/stash/groff/PKGBUILD
-source ~/.cache/drag/stash/shadow/PKGBUILD
-sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/shadow-maint\/shadow\/releases\/download\/$pkgver\/shadow-$pkgver.tar.xz)/' ~/.cache/drag/stash/shadow/PKGBUILD)
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/shadow-maint\/shadow\/releases\/download\/$pkgver\/shadow-$pkgver.tar.xz)/' ~/.cache/drag/stash/shadow/PKGBUILD
 for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow}; do
-	(source ~/.cache/drag/stash/$i/PKGBUILD
-	sed -i 's/cd .*pkgname.*/cd $pkgname-$pkgver/' ~/.cache/drag/stash/$i/PKGBUILD)
+	sed -i 's/cd .*pkgname.*/cd $pkgname-$pkgver/' ~/.cache/drag/stash/$i/PKGBUILD
 done
 sed -i 's/cd file/cd $pkgname-$pkgver/' ~/.cache/drag/stash/file/PKGBUILD
 sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/libtool/PKGBUILD
@@ -1140,7 +1139,9 @@ echo
 echo "STAGE 4 - Download source"
 echo
 
-pinch ${cigs[@]}
+for i in ${cigs[@]}; do
+	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"$i-"* ]] && pinch $i && echo "$i-" >> ~/.cache/wispux-bootstrap/3
+done
 
 mkdir -p $ashtray/ca-certificates/src $DRAG_ROOT/etc/ssl/certs
 cd $ashtray/ca-certificates/src
@@ -1168,7 +1169,6 @@ echo
 
 cd $ashtray/binutils/src/binutils*/
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -1184,6 +1184,9 @@ cd build
 	--disable-gdbserver
 make
 make install
+
+cd ..
+rm -rf build
 
 touch ~/.cache/wispux-bootstrap/5
 fi
@@ -1203,7 +1206,6 @@ mv mpfr*/ mpfr
 mv gmp*/ gmp
 mv mpc*/ mpc
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -1231,6 +1233,8 @@ make install
 
 cd ..
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > `dirname $($TGT-gcc -print-libgcc-file-name)`/include/limits.h
+
+rm -rf build
 
 touch ~/.cache/wispux-bootstrap/6
 fi
@@ -1261,7 +1265,6 @@ echo
 
 cd $ashtray/glibc/src/glibc*/
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -1278,6 +1281,9 @@ make DESTDIR=$DRAG_ROOT install
 
 sed '/RTLDLIST=/s@/usr@@g' -i $DRAG_ROOT/usr/bin/ldd
 
+cd ..
+rm -rf build
+
 touch ~/.cache/wispux-bootstrap/8
 fi
 if [ ! -f ~/.cache/wispux-bootstrap/9 ]; then
@@ -1287,7 +1293,6 @@ echo
 
 cd $ashtray/gcc/src/gcc*/
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -1302,6 +1307,9 @@ make
 make DESTDIR=$DRAG_ROOT install
 rm -f $DRAG_ROOT/usr/lib/lib{stdc++{,exp,fs},supc++}.la
 
+cd ..
+rm -rf build
+
 touch ~/.cache/wispux-bootstrap/9
 fi
 if [ ! -f ~/.cache/wispux-bootstrap/10 ]; then
@@ -1315,6 +1323,7 @@ cd $ashtray/m4/src/m4*/
 make
 make DESTDIR=$DRAG_ROOT install
 
+cd $ashtray
 pinch m4
 
 touch ~/.cache/wispux-bootstrap/10
@@ -1430,6 +1439,7 @@ cd $ashtray/findutils/src/findutils*/
 make
 make DESTDIR=$DRAG_ROOT install
 
+cd $ashtray
 pinch findutils
 
 touch ~/.cache/wispux-bootstrap/16
@@ -1547,7 +1557,6 @@ echo
 cd $ashtray/binutils/src/binutils*/
 sed '6031s/$add_dir//' -i ltmain.sh
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -1567,6 +1576,9 @@ cd build
 make
 make DESTDIR=$DRAG_ROOT install
 rm -f $DRAG_ROOT/usr/lib/lib{bfd,ctf,ctf-nobfd,opcodes,sframe}.{a,la}
+
+cd ..
+rm -rf build
 
 cd $ashtray
 pinch binutils
@@ -1590,7 +1602,6 @@ mv gmp*/ gmp
 mv mpc*/ mpc
 sed '/thread_header =/s/@.*@/gthr-posix.h/' -i libgcc/Makefile.in libstdc++-v3/include/Makefile.in
 
-rm -rf build
 mkdir -p build
 cd build
 
@@ -1616,6 +1627,9 @@ cd build
 make
 make DESTDIR=$DRAG_ROOT install
 ln -s gcc $DRAG_ROOT/usr/bin/cc
+
+cd ..
+rm -rf build
 
 cd $ashtray
 pinch gcc
