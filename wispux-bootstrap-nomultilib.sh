@@ -183,6 +183,8 @@ if [[ $(uname -m) == "i"*"86" ]]; then
 	mv usr/lib64 usr/lib32
 fi
 
+ln -sf usr/bin/cc $DRAG_ROOT/usr/bin/c99
+
 	echo "Pinching /etc/passwd"
 	cat > $DRAG_ROOT/etc/passwd << "EOF"
 root:x:0:0:root:/root:/bin/bash
@@ -1771,11 +1773,9 @@ echo "smoke ${cigs[@]}" > $DRAG_ROOT/root/.cache/hotbox
 chmod +x $DRAG_ROOT/root/.cache/hotbox
 
 tmpfsmount
-chroot $DRAG_ROOT /bin/bash -c "
+chroot $DRAG_ROOT /bin/bash -c "set -e
 source /etc/profile
 ~/.cache/hotbox
-
-ln -sf /usr/bin/cc /usr/bin/c99
 "
 
 find $DRAG_ROOT/usr -depth -name $(uname -m)-wispux-linux-gnu\* | xargs rm -rf
