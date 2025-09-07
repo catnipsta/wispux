@@ -21,7 +21,7 @@
 			you are free to customize Wispux and your installation process however you'd like.
 			To begin, you must be booted into a host disk that is different
 			from your target disk. The most ideal way to achieve this is to flash
-			a live linux iso to a usb, cd, or other bootable device. Void Linux's live images
+			a live linux iso to a usb, cd, or other bootable device. Void and Alpine's live images
 			are recommended. Download
 			one of these images or another minimal live iso and flash it to a usb or cd
 			that doesn't have any important data saved to it. WARNING: FLASHING A MEDIA DEVICE
@@ -44,15 +44,21 @@ tar
 gzip
 xz
 zstd
-lzip
 unzip
 gcc
 make
 bison
 flex
-python
+python3
 texinfo
 patch
+bash
+file
+sed
+mount
+umount
+b2sum
+e2fsprogs
 </code></pre>
 			<b>2. Partitioning and Formatting</b>
 			<p class="instructions">
