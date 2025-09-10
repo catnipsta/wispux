@@ -49,9 +49,13 @@ gcc
 make
 bison
 flex
-python3
+python
 texinfo
 patch
+</code></pre>
+			<p class="instructions">
+			If you are installing using an Alpine image, you will find the following necessary to install as well.
+			<pre><code>build-base
 bash
 file
 sed
@@ -251,6 +255,9 @@ make modules_install
 make install
 mv /boot/vmlinuz /boot/vmlinuz-6.12.44-wispux
 mv /boot/System.map /boot/System.map-6.12.44</code></pre>
+			<p class="instructions">
+			Remember that you may also need to install linux-firmware depending on the drivers you need.
+			</p>
 			<b>8. User and password setup</b>
 			<p class="instructions">
 			Setting up users and passwords is rather simple compared to the rest of this guide.

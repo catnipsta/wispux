@@ -183,8 +183,6 @@ if [[ $(uname -m) == "i"*"86" ]]; then
 	mv usr/lib64 usr/lib32
 fi
 
-ln -sf usr/bin/cc $DRAG_ROOT/usr/bin/c99
-
 	echo "Pinching /etc/passwd"
 	cat > $DRAG_ROOT/etc/passwd << "EOF"
 root:x:0:0:root:/root:/bin/bash
@@ -613,8 +611,6 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
-set +e
-
 sed -i 's/pkgver=.*/pkgver=8.6.16/' ~/.cache/drag/stash/tcl/PKGBUILD
 sed -i 's/pkgname=.*/pkgname=libxcrypt/' ~/.cache/drag/stash/libxcrypt/PKGBUILD
 sed -i '/--with-libpam/d; /--with-audit/d; /--enable-man/d' ~/.cache/drag/stash/shadow/PKGBUILD
@@ -659,7 +655,7 @@ for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,ps
 done
 sed -i 's/cd file/cd $pkgname-$pkgver/' ~/.cache/drag/stash/file/PKGBUILD
 sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/libtool/PKGBUILD
-sed -i 's/lz/xz' ~/.cache/drag/stash/gmp/PKGBUILD
+sed -i 's/lz/xz/' ~/.cache/drag/stash/gmp/PKGBUILD
 
 (source ~/.cache/drag/stash/xz/PKGBUILD
 cat > ~/.cache/drag/stash/xz/PKGBUILD << EOF
@@ -1133,7 +1129,7 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
-set -e
+sed -i 's/ftp.gnu.org/ftpmirror.gnu.org/' ~/.cache/drag/stash/*/PKGBUILD ### GNU servers slow
 
 touch ~/.cache/wispux-bootstrap/3
 fi
@@ -1200,7 +1196,7 @@ echo
 
 cd $ashtray/gcc/src/gcc*/
 tar xJf $ashtray/mpfr/src/mpfr*.tar.xz
-lzip -cd $ashtray/gmp/src/gmp*.tar.lz | tar xf -
+tar xJf $ashtray/gmp/src/gmp*.tar.xz
 tar xzf $ashtray/libmpc/src/mpc*.tar.gz
 rm -rf mpfr
 rm -rf gmp
@@ -1595,7 +1591,7 @@ echo
 
 cd $ashtray/gcc/src/gcc*/
 tar xJf $ashtray/mpfr/src/mpfr*.tar.xz
-lzip -cd $ashtray/gmp/src/gmp*.tar.lz | tar xf -
+tar xJf $ashtray/gmp/src/gmp*.tar.xz
 tar xzf $ashtray/libmpc/src/mpc*.tar.gz
 rm -rf mpfr
 rm -rf gmp
@@ -1630,6 +1626,7 @@ cd build
 make
 make DESTDIR=$DRAG_ROOT install
 ln -s gcc $DRAG_ROOT/usr/bin/cc
+ln -sf cc $DRAG_ROOT/usr/bin/c99
 
 cd ..
 rm -rf build
