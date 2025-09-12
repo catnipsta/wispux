@@ -1141,8 +1141,8 @@ echo "STAGE 4 - Download source"
 echo
 
 for i in ${cigs[@]}; do
-	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"$i-"* ]] && pinch $i
-	echo "$i-" >> ~/.cache/wispux-bootstrap/3
+	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"-$i-"* ]] && pinch $i
+	echo "-$i-" >> ~/.cache/wispux-bootstrap/3
 done
 
 mkdir -p $ashtray/ca-certificates/src $DRAG_ROOT/etc/ssl/certs
