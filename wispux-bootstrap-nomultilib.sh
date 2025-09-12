@@ -631,7 +631,7 @@ sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,inetutils,co
 sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make}/PKGBUILD
 
 ### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
-sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,tcl,gmp}/PKGBUILD
+sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,tcl,gmp,make}/PKGBUILD
 
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/coreutils\/coreutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/diffutils\/diffutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/diffutils/PKGBUILD
@@ -656,6 +656,7 @@ done
 sed -i 's/cd file/cd $pkgname-$pkgver/' ~/.cache/drag/stash/file/PKGBUILD
 sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/libtool/PKGBUILD
 sed -i 's/lz/xz/' ~/.cache/drag/stash/gmp/PKGBUILD
+sed -i 's/lz/gz/' ~/.cache/drag/stash/make/PKGBUILD
 
 (source ~/.cache/drag/stash/xz/PKGBUILD
 cat > ~/.cache/drag/stash/xz/PKGBUILD << EOF
@@ -1129,7 +1130,8 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
-sed -i 's/ftp.gnu.org/ftpmirror.gnu.org/' ~/.cache/drag/stash/*/PKGBUILD ### GNU servers slow
+sed -i 's/ftp.gnu.org\/pub/ftpmirror.gnu.org/' ~/.cache/drag/stash/*/PKGBUILD
+sed -i 's/ftp.gnu.org/ftpmirror.gnu.org/' ~/.cache/drag/stash/*/PKGBUILD
 
 touch ~/.cache/wispux-bootstrap/3
 fi
@@ -1139,7 +1141,8 @@ echo "STAGE 4 - Download source"
 echo
 
 for i in ${cigs[@]}; do
-	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"$i-"* ]] && pinch $i && echo "$i-" >> ~/.cache/wispux-bootstrap/3
+	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"$i-"* ]] && pinch $i
+	echo "$i-" >> ~/.cache/wispux-bootstrap/3
 done
 
 mkdir -p $ashtray/ca-certificates/src $DRAG_ROOT/etc/ssl/certs
@@ -1322,8 +1325,9 @@ cd $ashtray/m4/src/m4*/
 make
 make DESTDIR=$DRAG_ROOT install
 
-cd $ashtray
-pinch m4
+make distclean
+#cd $ashtray
+#pinch m4
 
 touch ~/.cache/wispux-bootstrap/10
 fi
@@ -1372,8 +1376,9 @@ make
 make DESTDIR=$DRAG_ROOT install
 ln -s bash $DRAG_ROOT/bin/sh
 
-cd $ashtray
-pinch bash
+make distclean
+#cd $ashtray
+#pinch bash
 
 touch ~/.cache/wispux-bootstrap/12
 fi
@@ -1438,8 +1443,9 @@ cd $ashtray/findutils/src/findutils*/
 make
 make DESTDIR=$DRAG_ROOT install
 
-cd $ashtray
-pinch findutils
+make distclean
+#cd $ashtray
+#pinch findutils
 
 touch ~/.cache/wispux-bootstrap/16
 fi
@@ -1579,8 +1585,8 @@ rm -f $DRAG_ROOT/usr/lib/lib{bfd,ctf,ctf-nobfd,opcodes,sframe}.{a,la}
 cd ..
 rm -rf build
 
-cd $ashtray
-pinch binutils
+#cd $ashtray
+#pinch binutils
 
 touch ~/.cache/wispux-bootstrap/25
 fi
@@ -1629,10 +1635,10 @@ ln -s gcc $DRAG_ROOT/usr/bin/cc
 ln -sf cc $DRAG_ROOT/usr/bin/c99
 
 cd ..
-rm -rf build
+rm -rf build mpfr gmp mpc
 
-cd $ashtray
-pinch gcc
+#cd $ashtray
+#pinch gcc
 
 touch ~/.cache/wispux-bootstrap/26
 fi
