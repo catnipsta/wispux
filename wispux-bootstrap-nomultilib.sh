@@ -404,7 +404,7 @@ echo
 rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
 
 DKRNLVER=6.12.44
-DGLIBCVER=2.42
+DGLIBCVER=2.41
 DGCCVER=14.2.0
 
 read -p "What Linux kernel version do you wish to use? (default: $DKRNLVER) " KRNLVER
