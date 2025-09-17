@@ -988,11 +988,11 @@ source=(https://www.cpan.org/src/${pkgver%%.*}.0/perl-$pkgver.tar.xz)
 EOF
 )
 cat >> ~/.cache/drag/stash/perl/PKGBUILD << "EOF"
-build(){
-cd perl-$pkgver
-
 export BUILD_ZLIB=False
 export BUILD_BZIP2=0
+
+build(){
+cd perl-$pkgver
 
 sh Configure -des \
 	-Dprefix=/usr \
@@ -1013,6 +1013,7 @@ make
 package(){
 cd perl-$pkgver
 make DESTDIR=$pkgdir install
+unset BUILD_ZLIB BUILD_BZIP2
 }
 EOF
 
@@ -1689,6 +1690,7 @@ sh Configure -des \
 	-D useshrplib
 make
 make install
+make distclean
 "
 
 touch ~/.cache/wispux-bootstrap/29
