@@ -619,6 +619,7 @@ sed -i '/case/,/esac/d' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i '/local _platform/d' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i 's/pkgbase/pkgname/' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i '/if \[/,/fi/d' ~/.cache/drag/stash/openssl/PKGBUILD
+sed -i '/shared/c\shared' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/tar/PKGBUILD
 sed -i 's/.\/configure/.\/configure --disable-vlock/' ~/.cache/drag/stash/kbd/PKGBUILD
