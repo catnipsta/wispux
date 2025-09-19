@@ -600,6 +600,10 @@ EOF
 )
 cat >> ~/.cache/drag/stash/grub/PKGBUILD << "EOF"
 source=(https://ftp.gnu.org/gnu/grub/grub-$pkgver.tar.xz)
+prepare(){
+cd grub-$pkgver
+echo depends bli part_gpt > grub-core/extra_deps.lst
+}
 build(){
 cd grub-$pkgver
 ./configure --prefix=/usr --sysconfdir=/etc --disable-efiemu --disable-werror
