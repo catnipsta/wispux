@@ -135,15 +135,15 @@ tmpfsmount() {
 	mount -t proc /proc $DRAG_ROOT/proc
 	fi
 	if ! mountpoint -q $DRAG_ROOT/sys; then
-	mount -R /sys $DRAG_ROOT/sys
+	mount --rbind /sys $DRAG_ROOT/sys
 	mount --make-rslave $DRAG_ROOT/sys
 	fi
 	if ! mountpoint -q $DRAG_ROOT/dev; then
-	mount -R /dev $DRAG_ROOT/dev
+	mount --rbind /dev $DRAG_ROOT/dev
 	mount --make-rslave $DRAG_ROOT/dev
 	fi
 	if ! mountpoint -q $DRAG_ROOT/run; then
-	mount -B /run $DRAG_ROOT/run
+	mount --bind /run $DRAG_ROOT/run
 	mount --make-slave $DRAG_ROOT/run
 	fi
 }
@@ -282,6 +282,9 @@ hostname "$(cat /etc/hostname)"
 udevd --daemon
 udevadm trigger
 udevadm settle
+
+# Module loading
+#modprobe i915
 
 # Manual ethernet
 #ip link set lo up
