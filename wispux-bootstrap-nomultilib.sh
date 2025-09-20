@@ -274,8 +274,8 @@ mount -a
 swapon -a
 
 . /etc/locale.conf
-
 export LANG LC_ALL LC_COLLATE
+
 hostname "$(cat /etc/hostname)"
 
 #Setup udev
