@@ -230,6 +230,10 @@ appendpath () {
 }
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+
+. /etc/locale.conf
+export LC_ALL=$LANG
+
 export ashtray=~/.cache/drag/ashtray
 
 EOF
