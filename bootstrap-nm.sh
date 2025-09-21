@@ -1378,6 +1378,9 @@ make DESTDIR=$DRAG_ROOT TIC_PATH=$(pwd)/build/progs/tic install
 ln -s libncursesw.so $DRAG_ROOT/usr/lib/libncurses.so
 sed -e 's/^#if.*XOPEN.*$/#if 1/' -i $DRAG_ROOT/usr/include/curses.h
 
+cd ..
+rm -rf build
+
 touch ~/.cache/wispux-bootstrap/11
 fi
 if [ ! -f ~/.cache/wispux-bootstrap/12 ]; then

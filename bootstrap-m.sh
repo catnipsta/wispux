@@ -1484,6 +1484,9 @@ ln -s libncursesw.so DESTDIR/usr/lib32/libncurses.so
 cp -R DESTDIR/usr/lib32/* $DRAG_ROOT/usr/lib32
 rm -rf DESTDIR
 
+cd ..
+rm -rf build
+
 touch ~/.cache/wispux-bootstrap/11
 fi
 if [ ! -f ~/.cache/wispux-bootstrap/12 ]; then
