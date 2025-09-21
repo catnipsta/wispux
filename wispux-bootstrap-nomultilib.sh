@@ -612,6 +612,7 @@ cd grub-$pkgver
 echo depends bli part_gpt > grub-core/extra_deps.lst
 }
 build(){
+unset {C,CXX,LD}FLAGS
 cd grub-$pkgver
 ./configure --prefix=/usr --sysconfdir=/etc --disable-efiemu --disable-werror
 make

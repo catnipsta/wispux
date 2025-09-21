@@ -241,6 +241,13 @@ echo "LANG=ru_RU.UTF-8" > /etc/locale.conf</code></pre>
 			Replace the ??? in the command below with your corresponding time zone. For example: US/Pacific.
 			</p>
 			<pre><code>ln -sf /usr/share/zoneinfo/??? /etc/localtime</code></pre>
+			<p class="instructions">
+			Edit /etc/fstab to mount your file systems on boot.
+			An example for an efi system with swap is provided below.
+			</p>
+			<pre><code>/dev/sda3	/		ext4	defaults	0 1
+/dev/sda2	none		swap	sw		0 0
+/dev/sda1	/boot/efi	vfat	defaults	0 2</code></pre>
 			<b>7. Compiling the Kernel</b>
 			<p class="instructions">
 			To configure your kernel, you can either manually edit /usr/src/linux-x.x.x/.config or you can use a tool like
