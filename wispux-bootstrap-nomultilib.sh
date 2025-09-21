@@ -231,9 +231,6 @@ appendpath () {
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 
-. /etc/locale.conf
-export LC_ALL=$LANG
-
 export ashtray=~/.cache/drag/ashtray
 
 EOF
@@ -274,7 +271,7 @@ mount -a
 swapon -a
 
 . /etc/locale.conf
-export LANG LC_ALL LC_COLLATE
+export LANG LC_ALL LC_COLLATE LC_CTYPE
 
 hostname "$(cat /etc/hostname)"
 
