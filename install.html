@@ -150,15 +150,15 @@ swapon /dev/sda2</code></pre>
 			On the other hand, building a nomultilib toolchain on a multilib system is rather simple.
 			Now download your choice of script and make it executable:
 			</p>
-			<pre><code>curl -LO https://catnipsta.github.io/wispux/wispux-bootstrap-nomultilib.sh
-chmod +x wispux-bootstrap-nomultilib.sh</code></pre>
+			<pre><code>curl -LO https://catnipsta.github.io/wispux/bootstrap-nm.sh
+chmod +x bootstrap-nm.sh</code></pre>
 			<p class="instructions">
 			If you are feeling paranoid, you may also download the sha256 sum of the bootstrap and
 			verify it as shown below.
 			</p>
-			<pre><code>curl -LO https://catnipsta.github.io/wispux/wispux-bootstrap-nomultilib-sha256
-cat wispux-bootstrap-nomultilib-sha256
-sha256sum wispux-bootstrap-nomultilib.sh</code></pre>
+			<pre><code>curl -LO https://catnipsta.github.io/wispux/bootstrap-nm-sha256
+cat bootstrap-nm-sha256
+sha256sum bootstrap-nm.sh</code></pre>
 			<p class="instructions">
 			The bootstrap contains a list of packages that will be installed to your new system.
 			One of these packages is vi, a text editor. If you are not comfortable with vi, please
