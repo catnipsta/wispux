@@ -1152,13 +1152,13 @@ echo "STAGE 4 - Download source"
 echo
 
 echo "Note:"
-echo "At the possibility that a download is consistently failing, you may need to edit the source variable in a PKGBUILD"
+echo "If a download is consistently failing, you may need to edit the source variable in a PKGBUILD"
 echo "To edit PKGBUILDs, use the snoop command."
 echo
 
 for i in ${cigs[@]}; do
-	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"-$i-"* ]] && pinch $i
-	echo "-$i-" >> ~/.cache/wispux-bootstrap/3
+	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"--$i--"* ]] && pinch $i
+	echo "--$i--" >> ~/.cache/wispux-bootstrap/3
 done
 
 mkdir -p $ashtray/ca-certificates/src $DRAG_ROOT/etc/ssl/certs

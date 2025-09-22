@@ -33,8 +33,6 @@
 			<p class="instructions">
 			This installation process requires an internet connection as well as
 			certain packages to be installed on your host system.
-			Keep in mind that if you are building a multilib system, you will also be required to have
-			certain 32 bit libraries installed.
 			Please make sure that at least the following are installed:
 			</p>
 			<pre><code>curl
@@ -182,7 +180,7 @@ sha256sum bootstrap-nm.sh</code></pre>
 			Now run the bootstrap, passing your mount point as a parameter.
 			</p>
 			<code>
-			./wispux-boostrap-nomultilib.sh /mnt/wispux
+			./boostrap-nm.sh /mnt/wispux
 			</code>
 			<p class="instructions">
 			STAGE 2 will ask you for your preferred Linux kernel, glibc, and GCC version.

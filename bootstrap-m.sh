@@ -27,7 +27,6 @@ lib32-lz4
 zstd
 lib32-zstd
 file
-lib32-file
 readline
 lib32-readline
 pcre2
@@ -40,8 +39,8 @@ expect
 dejagnu
 pkgconf
 binutils
-lib32-gmp
 gmp
+lib32-gmp
 mpfr
 libmpc
 libisl
@@ -64,7 +63,7 @@ bison
 grep
 bash
 libtool
-lib32-libtool
+lib32-libltdl
 gdbm
 lib32-gdbm
 gperf
@@ -80,7 +79,7 @@ automake
 openssl
 lib32-openssl
 elfutils
-lib32-elfutils
+lib32-libelf
 libffi
 lib32-libffi
 sqlite
@@ -701,11 +700,11 @@ sed -i '/git /d; /--with-systemd/d' ~/.cache/drag/stash/procps-ng/PKGBUILD
 sed -i '/git /d; /jit/d' ~/.cache/drag/stash/pcre2/PKGBUILD
 sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -i '/tracking/,/=libidn2/d' ~/.cache/drag/stash/libpsl/PKGBUILD
-sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
+sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,lib32-libltdl,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,lib32-gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
 sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make}/PKGBUILD
 
 ### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
-sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,tcl,gmp,make}/PKGBUILD
+sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,lib32-libltdl,inetutils,automake,groff,shadow,tcl,gmp,lib32-gmp,make}/PKGBUILD
 
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/coreutils\/coreutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/diffutils\/diffutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/diffutils/PKGBUILD
@@ -720,16 +719,19 @@ sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/relea
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/acl\/acl-$pkgver.tar.xz)/' ~/.cache/drag/stash/acl/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/sourceforge.net\/projects\/psmisc\/files\/psmisc\/psmisc-$pkgver.tar.xz)/' ~/.cache/drag/stash/psmisc/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/libtool\/libtool-${pkgver%%+*}.tar.xz)/' ~/.cache/drag/stash/libtool/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/libtool\/libtool-${pkgver%%+*}.tar.xz)/' ~/.cache/drag/stash/lib32-libltdl/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/inetutils\/inetutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/inetutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/automake\/automake-$pkgver.tar.xz)/' ~/.cache/drag/stash/automake/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/groff\/groff-$pkgver.tar.gz)/' ~/.cache/drag/stash/groff/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/shadow-maint\/shadow\/releases\/download\/$pkgver\/shadow-$pkgver.tar.xz)/' ~/.cache/drag/stash/shadow/PKGBUILD
-for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow}; do
+for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,lib32-libltdl,inetutils,automake,groff,shadow}; do
 	sed -i 's/cd .*pkgname.*/cd $pkgname-$pkgver/' ~/.cache/drag/stash/$i/PKGBUILD
 done
 sed -i 's/cd file/cd $pkgname-$pkgver/' ~/.cache/drag/stash/file/PKGBUILD
 sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/libtool/PKGBUILD
+sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/lib32-libltdl/PKGBUILD
 sed -i 's/lz/xz/' ~/.cache/drag/stash/gmp/PKGBUILD
+sed -i 's/lz/xz/' ~/.cache/drag/stash/lib32-gmp/PKGBUILD
 sed -i 's/lz/gz/' ~/.cache/drag/stash/make/PKGBUILD
 
 (source ~/.cache/drag/stash/xz/PKGBUILD
@@ -1035,6 +1037,29 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
+(source ~/.cache/drag/stash/lib32-gdbm/PKGBUILD
+cat > ~/.cache/drag/stash/lib32-gdbm/PKGBUILD << EOF
+pkgname=lib32-gdbm
+pkgver=$pkgver
+source=(https://ftp.gnu.org/gnu/gdbm/gdbm-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/gdbm/PKGBUILD << "EOF"
+build(){
+cd gdbm-$pkgver
+CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" \
+./configure --prefix=/usr \
+	--disable-static \
+	--enable-libgdbm-compat
+make
+}
+package(){
+cd gdbm-$pkgver
+make DESTDIR=$pkgdir install
+rm -rf "${pkgdir}"/usr/{bin,share,include}
+}
+EOF
+
 (source ~/.cache/drag/stash/check/PKGBUILD
 cat > ~/.cache/drag/stash/check/PKGBUILD << EOF
 pkgname=check
@@ -1216,13 +1241,13 @@ echo "STAGE 4 - Download source"
 echo
 
 echo "Note:"
-echo "At the possibility that a download is consistently failing, you may need to edit the source variable in a PKGBUILD"
+echo "If a download is consistently failing, you may need to edit the source variable in a PKGBUILD"
 echo "To edit PKGBUILDs, use the snoop command."
 echo
 
 for i in ${cigs[@]}; do
-	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"-$i-"* ]] && pinch $i
-	echo "-$i-" >> ~/.cache/wispux-bootstrap/3
+	[[ $(cat ~/.cache/wispux-bootstrap/3) != *"--$i--"* ]] && pinch $i
+	echo "--$i--" >> ~/.cache/wispux-bootstrap/3
 done
 
 mkdir -p $ashtray/ca-certificates/src $DRAG_ROOT/etc/ssl/certs
@@ -1306,7 +1331,7 @@ cd build
 	--disable-nls \
 	--disable-shared \
 	--enable-multilib --with-multilib-list=m64,m32 \
-	--disable-decimal-float
+	--disable-decimal-float \
 	--disable-threads \
 	--disable-libatomic \
 	--disable-libgomp \
