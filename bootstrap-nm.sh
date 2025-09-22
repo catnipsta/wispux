@@ -526,17 +526,18 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
+(source ~/.cache/drag/stash/binutils/PKGBUILD
 cat > ~/.cache/drag/stash/binutils/PKGBUILD << EOF
 pkgname=binutils
-pkgver=$(date +%Y%m%d)
+pkgver=${pkgver%%+*}
 
 EOF
-
+)
 cat >> ~/.cache/drag/stash/binutils/PKGBUILD << "EOF"
-source=("git+https://sourceware.org/git/binutils-gdb.git")
+source=("https://sourceware.org/pub/binutils/releases/binutils-$pkgver.tar.xz")
 
 build() {
-cd binutils-gdb/
+cd binutils-$pkgver
 
 mkdir -p build
 cd build
@@ -557,7 +558,7 @@ make tooldir=/usr
 }
 
 package() {
-cd binutils-gdb/build
+cd binutils-$pkgver/build
 
 make DESTDIR=$pkgdir tooldir=/usr install
 }

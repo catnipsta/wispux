@@ -209,11 +209,6 @@ chgrp -v utmp var/log/lastlog
 chmod -v 664  var/log/lastlog
 chmod -v 600  var/log/btmp
 
-if [[ $(uname -m) == "i"*"86" ]]; then
-	mv lib64 lib32
-	mv usr/lib64 usr/lib32
-fi
-
 	echo "Pinching /etc/passwd"
 	cat > $DRAG_ROOT/etc/passwd << "EOF"
 root:x:0:0:root:/root:/bin/bash
@@ -578,17 +573,18 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
+(source ~/.cache/drag/stash/binutils/PKGBUILD
 cat > ~/.cache/drag/stash/binutils/PKGBUILD << EOF
 pkgname=binutils
-pkgver=$(date +%Y%m%d)
+pkgver=${pkgver%%+*}
 
 EOF
-
+)
 cat >> ~/.cache/drag/stash/binutils/PKGBUILD << "EOF"
-source=("git+https://sourceware.org/git/binutils-gdb.git")
+source=("https://sourceware.org/pub/binutils/releases/binutils-$pkgver.tar.xz")
 
 build() {
-cd binutils-gdb/
+cd binutils-$pkgver
 
 mkdir -p build
 cd build
@@ -602,14 +598,14 @@ cd build
              --enable-64-bit-bfd \
              --enable-new-dtags  \
              --with-system-zlib  \
-	     --disable-gdb       \
-	     --disable-gdbserver \
+             --disable-gdb       \
+             --disable-gdbserver \
              --enable-default-hash-style=gnu
 make tooldir=/usr
 }
 
 package() {
-cd binutils-gdb/build
+cd binutils-$pkgver/build
 
 make DESTDIR=$pkgdir tooldir=/usr install
 }
@@ -1404,7 +1400,7 @@ CC="$TGT-gcc -m32" CXX="$TGT-g++ -m32" \
 	--disable-nscd \
 	--libdir=/usr/lib32 \
 	--libexecdir=/usr/lib32 \
-	libc_cv_slibdir=/usr/lib
+	libc_cv_slibdir=/usr/lib32
 make
 make DESTDIR=$PWD/DESTDIR install
 cp -a DESTDIR/usr/lib32 $DRAG_ROOT/usr/
@@ -1954,7 +1950,7 @@ source /etc/profile
 ~/.cache/hotbox
 "
 
-find $DRAG_ROOT/usr -depth -name $(uname -m)-wispux-linux-gnu\* | xargs rm -rf
+find $DRAG_ROOT/usr -depth -name x86_64-wispux-linux-gnu\* | xargs rm -rf
 sed -i 's/#//' $DRAG_ROOT/etc/profile
 
 touch ~/.cache/wispux-bootstrap/33
