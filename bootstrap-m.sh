@@ -1184,6 +1184,28 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
+(source ~/.cache/drag/stash/lib32-curl/PKGBUILD
+cat > ~/.cache/drag/stash/lib32-curl/PKGBUILD << EOF
+pkgname=lib32-curl
+pkgver=$pkgver
+source=(https://curl.se/download/curl-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/lib32-curl/PKGBUILD << "EOF"
+build(){
+cd curl-$pkgver
+
+CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" \
+./configure --prefix=/usr --with-openssl --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
+make
+}
+package(){
+cd curl-$pkgver
+
+make DESTDIR=$pkgdir install
+}
+EOF
+
 (source ~/.cache/drag/stash/zlib/PKGBUILD
 cat > ~/.cache/drag/stash/zlib/PKGBUILD << EOF
 pkgname=zlib
@@ -1483,7 +1505,7 @@ cd $ashtray/ncurses/src/ncurses*/
 	AWK=gawk
 make
 make DESTDIR=$DRAG_ROOT TIC_PATH=$(pwd)/build/progs/tic install
-ln -s libncursesw.so $DRAG_ROOT/usr/lib/libncurses.so
+ln -sf libncursesw.so $DRAG_ROOT/usr/lib/libncurses.so
 sed -e 's/^#if.*XOPEN.*$/#if 1/' -i $DRAG_ROOT/usr/include/curses.h
 
 make distclean
@@ -1500,8 +1522,8 @@ CC="$TGT-gcc -m32" CXX="TGT-g++ -m32" \
 	--without-ada \
 	--disable-stripping
 make
-make DESTDIR=$PWD/DESTDIR TIC_PATH=$(pwd)/build/progs/build/progs/tic install
-ln -s libncursesw.so DESTDIR/usr/lib32/libncurses.so
+make DESTDIR=$PWD/DESTDIR TIC_PATH=$(pwd)/build/progs/tic install
+ln -sf libncursesw.so DESTDIR/usr/lib32/libncurses.so
 cp -R DESTDIR/usr/lib32/* $DRAG_ROOT/usr/lib32
 rm -rf DESTDIR
 
@@ -1520,7 +1542,7 @@ cd $ashtray/bash/src/bash*/
 ./configure --prefix=/usr --host=$TGT --build=$(sh support/config.guess) --without-bash-malloc
 make
 make DESTDIR=$DRAG_ROOT install
-ln -s bash $DRAG_ROOT/bin/sh
+ln -sf bash $DRAG_ROOT/bin/sh
 
 make distclean
 #cd $ashtray
@@ -1778,7 +1800,7 @@ cd build
 	--enable-languages=c,c++
 make
 make DESTDIR=$DRAG_ROOT install
-ln -s gcc $DRAG_ROOT/usr/bin/cc
+ln -sf gcc $DRAG_ROOT/usr/bin/cc
 ln -sf cc $DRAG_ROOT/usr/bin/c99
 
 cd ..

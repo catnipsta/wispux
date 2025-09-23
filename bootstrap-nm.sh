@@ -1376,7 +1376,7 @@ cd $ashtray/ncurses/src/ncurses*/
 	AWK=gawk
 make
 make DESTDIR=$DRAG_ROOT TIC_PATH=$(pwd)/build/progs/tic install
-ln -s libncursesw.so $DRAG_ROOT/usr/lib/libncurses.so
+ln -sf libncursesw.so $DRAG_ROOT/usr/lib/libncurses.so
 sed -e 's/^#if.*XOPEN.*$/#if 1/' -i $DRAG_ROOT/usr/include/curses.h
 
 cd ..
@@ -1394,7 +1394,7 @@ cd $ashtray/bash/src/bash*/
 ./configure --prefix=/usr --host=$TGT --build=$(sh support/config.guess) --without-bash-malloc
 make
 make DESTDIR=$DRAG_ROOT install
-ln -s bash $DRAG_ROOT/bin/sh
+ln -sf bash $DRAG_ROOT/bin/sh
 
 make distclean
 #cd $ashtray
@@ -1649,7 +1649,7 @@ cd build
 	--enable-languages=c,c++
 make
 make DESTDIR=$DRAG_ROOT install
-ln -s gcc $DRAG_ROOT/usr/bin/cc
+ln -sf gcc $DRAG_ROOT/usr/bin/cc
 ln -sf cc $DRAG_ROOT/usr/bin/c99
 
 cd ..
