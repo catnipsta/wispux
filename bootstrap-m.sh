@@ -29,8 +29,6 @@ lib32-zstd
 file
 readline
 lib32-readline
-pcre2
-lib32-pcre2
 m4
 bc
 flex
@@ -82,8 +80,6 @@ elfutils
 lib32-libelf
 libffi
 lib32-libffi
-sqlite
-lib32-sqlite
 python
 python-flit-core
 python-wheel
@@ -117,13 +113,11 @@ lib32-util-linux
 e2fsprogs
 
 libunistring
-lib32-libunistring
 libidn2
-lib32-libidn2
 libpsl
-lib32-libpsl
+pcre2
+lib32-pcre2
 curl
-lib32-curl
 git
 )
 
@@ -493,7 +487,7 @@ echo "rootsbindir=/usr/sbin" > configparms
 	--enable-stack-protector=strong \
 	--disable-nscd
 make
-make DESTDIR=$pkgdir install
+make DESTDIR=$srcdir/64 install
 
 rm -rf ./*
 find .. -name "*.a" -delete
@@ -510,12 +504,15 @@ CC="gcc -m32" CXX="g++ -m32" \
 	--enable-stack-protector=strong \
 	--enable-kernel=5.4
 make
-make DESTDIR=$PWD/DESTDIR install
-cp -a DESTDIR/usr/lib32/* $pkdir/usr/lib32/
-install -vm644 DESTDIR/usr/include/gnu/{lib-names,stubs}-32.h $pkdir/usr/include/gnu
+make DESTDIR=$srcdir/32 install
 }
 
 package() {
+mkdir -p $pkgdir/usr/lib32
+cp -a $srcdir/64/* $pkgdir
+cp -a $srcdir/32/usr/lib32/* $pkdir/usr/lib32/
+install -vm644 $srcdir/32/usr/include/gnu/{lib-names,stubs}-32.h $pkdir/usr/include/gnu
+
 sed '/RTLDLIST=/s@/usr@@g' -i $pkgdir/usr/bin/ldd
 mkdir -p $pkgdir/etc
 echo "passwd: files" >  $pkgdir/etc/nsswitch.conf
@@ -625,18 +622,28 @@ cd build
 
 ../configure --prefix=/usr --sysconfdir=/etc --disable-static
 make
-make DESTDIR=$pkgdir install
+make DESTDIR=$srcdir/64 install
 
 rm -rf *
-CC="gcc -m32 -march=i686" CXX="g++ -m32 -march=i686" LANG=en_US.UTF-8 \
-../configure --prefix=/usr --sysconfdir=/etc --disable-static
+CC="gcc -m32 -march=i686" CXX="g++ -m32 -march=i686" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" LANG=en_US.UTF-8 \
+../configure --prefix=/usr --libdir=/usr/lib32 --sysconfdir=/etc --disable-static
 make
-make DESTDIR=$pkgdir install
+make DESTDIR=$srcdir/32 install
 }
 
 package() {
-cd eudev-$pkgver
-echo
+cd eudev-$pkgver/build
+cp -a $srcdir/64/* $pkgdir
+mkdir -p $pkgdir/usr/lib32
+cp -r $srcdir/32/usr/lib32/* $pkgdir/usr/lib32
+}
+EOF
+
+cat > ~/.cache/drag/stash/eudev/eudev.install << "EOF"
+#!/bin/sh
+
+post_install() {
+udev-hwdb update
 }
 EOF
 
@@ -681,6 +688,7 @@ EOF
 
 sed -i 's/pkgver=.*/pkgver=8.6.16/' ~/.cache/drag/stash/tcl/PKGBUILD
 sed -i 's/pkgname=.*/pkgname=libxcrypt/' ~/.cache/drag/stash/libxcrypt/PKGBUILD
+sed -i 's/pkgname=.*/pkgname=lib32-libxcrypt/' ~/.cache/drag/stash/lib32-libxcrypt/PKGBUILD
 sed -i '/--with-libpam/d; /--with-audit/d; /--enable-man/d' ~/.cache/drag/stash/shadow/PKGBUILD
 sed -i 's/^[[:space:]]*make[[:space:]]*$/make clean \&\& make/' ~/.cache/drag/stash/grep/PKGBUILD
 sed -i '/case/,/esac/d' ~/.cache/drag/stash/openssl/PKGBUILD
@@ -694,10 +702,14 @@ sed -i 's/.\/configure/.\/configure --disable-vlock/' ~/.cache/drag/stash/kbd/PK
 sed -i 's/make/CFLAGS=-Wno-error=implicit-function-declaration make/' ~/.cache/drag/stash/vi/PKGBUILD
 sed -i '/git /d; /--with-systemd/d' ~/.cache/drag/stash/procps-ng/PKGBUILD
 sed -i '/git /d; /jit/d' ~/.cache/drag/stash/pcre2/PKGBUILD
+sed -i '/git /d; /jit/d' ~/.cache/drag/stash/lib32-pcre2/PKGBUILD
+sed -i '/msg/d; /configure/s/$/ --host=i686-pc-linux-gnu/' ~/.cache/drag/stash/lib32-readline/PKGBUILD
+sed -i 's/configure/configure --host=i686-pc-linux-gnu/' ~/.cache/drag/stash/lib32-gmp/PKGBUILD
+sed -i '/PKG_CONFIG/d' ~/.cache/drag/stash/lib32-libelf/PKGBUILD
 sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -i '/tracking/,/=libidn2/d' ~/.cache/drag/stash/libpsl/PKGBUILD
-sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,lib32-libltdl,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,lib32-gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
-sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make}/PKGBUILD
+sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,lib32-libltdl,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
+sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make,lib32-{zlib,lz4}}/PKGBUILD
 
 ### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
 sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,lib32-libltdl,inetutils,automake,groff,shadow,tcl,gmp,lib32-gmp,make}/PKGBUILD
@@ -724,10 +736,8 @@ for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,ps
 	sed -i 's/cd .*pkgname.*/cd $pkgname-$pkgver/' ~/.cache/drag/stash/$i/PKGBUILD
 done
 sed -i 's/cd file/cd $pkgname-$pkgver/' ~/.cache/drag/stash/file/PKGBUILD
-sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/libtool/PKGBUILD
-sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/lib32-libltdl/PKGBUILD
-sed -i 's/lz/xz/' ~/.cache/drag/stash/gmp/PKGBUILD
-sed -i 's/lz/xz/' ~/.cache/drag/stash/lib32-gmp/PKGBUILD
+sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/{libtool,lib32-libltdl}/PKGBUILD
+sed -i 's/lz/xz/' ~/.cache/drag/stash/{gmp,lib32-gmp}/PKGBUILD
 sed -i 's/lz/gz/' ~/.cache/drag/stash/make/PKGBUILD
 
 (source ~/.cache/drag/stash/xz/PKGBUILD
@@ -746,6 +756,26 @@ make
 package(){
 cd $pkgname-$pkgver
 make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/lib32-xz/PKGBUILD
+cat > ~/.cache/drag/stash/lib32-xz/PKGBUILD << EOF
+pkgname=lib32-xz
+pkgver=$pkgver
+source=(https://github.com/tukaani-project/xz/releases/download/v$pkgver/xz-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/lib32-xz/PKGBUILD << "EOF"
+build(){
+cd $pkgname-$pkgver
+CC="gcc -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" ./configure --host=i686-pc-linux-gnu --prefix=/usr --libdir=/usr/lib32 --disable-static
+make
+}
+package(){
+cd $pkgname-$pkgver
+make DESTDIR=$pkgdir install
+rm -rf "$pkgdir"/usr/{bin,include,share}
 }
 EOF
 
@@ -782,6 +812,28 @@ make prefix=/usr
 package(){
 cd zstd-$pkgver
 make DESTDIR=$pkgdir prefix=/usr install
+}
+EOF
+
+(source ~/.cache/drag/stash/lib32-zstd/PKGBUILD
+cat > ~/.cache/drag/stash/lib32-zstd/PKGBUILD << EOF
+pkgname=lib32-zstd
+pkgver=$pkgver
+source=(${source[@]})
+EOF
+)
+cat >> ~/.cache/drag/stash/lib32-zstd/PKGBUILD << "EOF"
+build(){
+cd zstd-$pkgver
+CC="gcc -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" make prefix=/usr
+}
+package(){
+cd zstd-$pkgver
+make prefix=/usr DESTDIR=$PWD/DESTDIR install
+mkdir -p $pkgdir/usr/lib32
+cp -Rv DESTDIR/usr/lib/* $pkgdir/usr/lib32/
+sed -e "/^libdir/s/lib$/lib32/" -i $pkgdir/usr/lib32/pkgconfig/libzstd.pc
+rm -rf DESTDIR
 }
 EOF
 
@@ -845,6 +897,28 @@ make
 package(){
 cd expat-$pkgver
 make DESTDIR=$pkgdir install
+}
+EOF
+
+(source ~/.cache/drag/stash/lib32-expat/PKGBUILD
+cat > ~/.cache/drag/stash/lib32-expat/PKGBUILD << EOF
+pkgname=lib32-expat
+pkgver=$pkgver
+source=(https://prdownloads.sourceforge.net/expat/expat-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/lib32-expat/PKGBUILD << "EOF"
+build(){
+cd expat-$pkgver
+CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" ./configure --prefix=/usr --libdir=/usr/lib32 --host=i686-pc-linux-gnu --disable-static
+make
+}
+package(){
+cd expat-$pkgver
+make DESTDIR=$PWD/DESTDIR install
+mkdir -p $pkgdir/usr/lib32
+cp -Rv DESTDIR/usr/lib32/* $pkgdir/usr/lib32
+rm -rf DESTDIR
 }
 EOF
 
@@ -1040,11 +1114,12 @@ pkgver=$pkgver
 source=(https://ftp.gnu.org/gnu/gdbm/gdbm-$pkgver.tar.gz)
 EOF
 )
-cat >> ~/.cache/drag/stash/gdbm/PKGBUILD << "EOF"
+cat >> ~/.cache/drag/stash/lib32-gdbm/PKGBUILD << "EOF"
 build(){
 cd gdbm-$pkgver
 CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" \
 ./configure --prefix=/usr \
+	--libdir=/usr/lib32 \
 	--disable-static \
 	--enable-libgdbm-compat
 make
@@ -1052,7 +1127,7 @@ make
 package(){
 cd gdbm-$pkgver
 make DESTDIR=$pkgdir install
-rm -rf "${pkgdir}"/usr/{bin,share,include}
+rm -rf "$pkgdir"/usr/{bin,share,include}
 }
 EOF
 
@@ -1163,6 +1238,34 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
+(source ~/.cache/drag/stash/lib32-util-linux/PKGBUILD
+cat > ~/.cache/drag/stash/lib32-util-linux/PKGBUILD << EOF
+pkgname=lib32-util-linux
+pkgver=$pkgver
+source=(https://kernel.org/pub/linux/utils/util-linux/v${pkgver%.*}/util-linux-$pkgver.tar.xz)
+EOF
+)
+cat >> ~/.cache/drag/stash/lib32-util-linux/PKGBUILD << "EOF"
+build(){
+cd util-linux-$pkgver
+
+CC="gcc -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" ./configure --bindir=/usr/bin \
+	--host=i686-pc-linux-gnu \
+	--libdir=/usr/lib32 \
+	--runstatedir=/run \
+	--disable-liblastlog2
+make
+}
+package(){
+cd util-linux-$pkgver
+
+make DESTDIR=$PWD/DESTDIR install
+mkdir -p $pkgdir/usr/lib32
+cp -Rv DESTDIR/usr/lib32/* $pkgdir/usr/lib32
+rm -rf DESTDIR
+}
+EOF
+
 (source ~/.cache/drag/stash/curl/PKGBUILD
 cat > ~/.cache/drag/stash/curl/PKGBUILD << EOF
 pkgname=curl
@@ -1174,28 +1277,6 @@ cat >> ~/.cache/drag/stash/curl/PKGBUILD << "EOF"
 build(){
 cd curl-$pkgver
 
-./configure --prefix=/usr --with-openssl --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
-make
-}
-package(){
-cd curl-$pkgver
-
-make DESTDIR=$pkgdir install
-}
-EOF
-
-(source ~/.cache/drag/stash/lib32-curl/PKGBUILD
-cat > ~/.cache/drag/stash/lib32-curl/PKGBUILD << EOF
-pkgname=lib32-curl
-pkgver=$pkgver
-source=(https://curl.se/download/curl-$pkgver.tar.xz)
-EOF
-)
-cat >> ~/.cache/drag/stash/lib32-curl/PKGBUILD << "EOF"
-build(){
-cd curl-$pkgver
-
-CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" \
 ./configure --prefix=/usr --with-openssl --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
 make
 }
@@ -1427,7 +1508,7 @@ make
 make DESTDIR=$PWD/DESTDIR install
 cp -a DESTDIR/usr/lib32 $DRAG_ROOT/usr/
 install -vm644 DESTDIR/usr/include/gnu/{lib-names,stubs}-32.h $DRAG_ROOT/usr/include/gnu/
-ln -svf ../lib32/ld-linux.so.2 $LFS/lib/ld-linux.so.2
+ln -svf ../lib32/ld-linux.so.2 $DRAG_ROOT/lib/ld-linux.so.2
 
 cd ..
 rm -rf build
@@ -1920,7 +2001,7 @@ make
 make install
 
 make distclean
-CC="gcc -m32" \
+CC='gcc -m32' \
 ./configure --host=i686-pc-linux-gnu \
 	--libdir=/usr/lib32 \
 	--runstatedir=/run \
@@ -1935,7 +2016,7 @@ CC="gcc -m32" \
 	--disable-liblastlog2 \
 	--without-python
 make
-make DESTDIR=$PWD/DESTDIR install
+make DESTDIR=\$PWD/DESTDIR install
 cp -R DESTDIR/usr/lib32/* /usr/lib32
 rm -rf DESTDIR
 "

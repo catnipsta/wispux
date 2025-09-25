@@ -582,6 +582,14 @@ make DESTDIR=$pkgdir install
 }
 EOF
 
+cat > ~/.cache/drag/stash/eudev/eudev.install << "EOF"
+#!/bin/sh
+
+post_install() {
+udev-hwdb update
+}
+EOF
+
 mkdir -p ~/.cache/drag/stash/linux-firmware
 cat > ~/.cache/drag/stash/linux-firmware/PKGBUILD << EOF
 pkgname=linux-firmware
