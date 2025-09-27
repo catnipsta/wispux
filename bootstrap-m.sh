@@ -510,8 +510,8 @@ make DESTDIR=$srcdir/32 install
 package() {
 mkdir -p $pkgdir/usr/lib32
 cp -a $srcdir/64/* $pkgdir
-cp -a $srcdir/32/usr/lib32/* $pkdir/usr/lib32/
-install -vm644 $srcdir/32/usr/include/gnu/{lib-names,stubs}-32.h $pkdir/usr/include/gnu
+cp -a $srcdir/32/usr/lib32/* $pkgdir/usr/lib32/
+install -vm644 $srcdir/32/usr/include/gnu/{lib-names,stubs}-32.h $pkgdir/usr/include/gnu
 
 sed '/RTLDLIST=/s@/usr@@g' -i $pkgdir/usr/bin/ldd
 mkdir -p $pkgdir/etc
@@ -708,6 +708,8 @@ sed -i 's/configure/configure --host=i686-pc-linux-gnu/' ~/.cache/drag/stash/lib
 sed -i '/PKG_CONFIG/d' ~/.cache/drag/stash/lib32-libelf/PKGBUILD
 sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -i '/tracking/,/=libidn2/d' ~/.cache/drag/stash/libpsl/PKGBUILD
+sed -i '/with-psl/c\ ' ~/.cache/drag/stash/libpsl/PKGBUILD
+sed -i '/with-readline/c\ ' ~/.cache/drag/stash/bc/PKGBUILD 
 sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,lib32-libltdl,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
 sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make,lib32-{zlib,lz4}}/PKGBUILD
 
@@ -768,12 +770,12 @@ EOF
 )
 cat >> ~/.cache/drag/stash/lib32-xz/PKGBUILD << "EOF"
 build(){
-cd $pkgname-$pkgver
+cd xz-$pkgver
 CC="gcc -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" ./configure --host=i686-pc-linux-gnu --prefix=/usr --libdir=/usr/lib32 --disable-static
 make
 }
 package(){
-cd $pkgname-$pkgver
+cd xz-$pkgver
 make DESTDIR=$pkgdir install
 rm -rf "$pkgdir"/usr/{bin,include,share}
 }
@@ -1228,7 +1230,9 @@ cd util-linux-$pkgver
 ./configure --bindir=/usr/bin \
 	--libdir=/usr/lib \
 	--runstatedir=/run \
-	--disable-liblastlog2
+	--disable-liblastlog2 \
+        --disable-pylibmount \
+        --without-python
 make
 }
 package(){
@@ -1253,7 +1257,9 @@ CC="gcc -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" ./configure --bindir=/usr/b
 	--host=i686-pc-linux-gnu \
 	--libdir=/usr/lib32 \
 	--runstatedir=/run \
-	--disable-liblastlog2
+	--disable-liblastlog2 \
+        --disable-pylibmount \
+        --without-python
 make
 }
 package(){
@@ -2019,6 +2025,7 @@ make
 make DESTDIR=\$PWD/DESTDIR install
 cp -R DESTDIR/usr/lib32/* /usr/lib32
 rm -rf DESTDIR
+make distclean
 "
 
 touch ~/.cache/wispux-bootstrap/32

@@ -646,6 +646,8 @@ sed -i '/git /d; /--with-systemd/d' ~/.cache/drag/stash/procps-ng/PKGBUILD
 sed -i '/git /d; /jit/d' ~/.cache/drag/stash/pcre2/PKGBUILD
 sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -i '/tracking/,/=libidn2/d' ~/.cache/drag/stash/libpsl/PKGBUILD
+sed -i '/with-psl/c\ ' ~/.cache/drag/stash/libpsl/PKGBUILD
+sed -i '/with-readline/c\ ' ~/.cache/drag/stash/bc/PKGBUILD
 sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
 sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make}/PKGBUILD
 
@@ -1077,7 +1079,9 @@ cd util-linux-$pkgver
 ./configure --bindir=/usr/bin \
 	--libdir=/usr/lib \
 	--runstatedir=/run \
-	--disable-liblastlog2
+	--disable-liblastlog2 \
+	--disable-pylibmount \
+	--without-python
 make
 }
 package(){
@@ -1775,6 +1779,7 @@ cd $ashtray/util-linux/src/util-linux*/
 	--without-python
 make
 make install
+make distclean
 "
 
 touch ~/.cache/wispux-bootstrap/32
