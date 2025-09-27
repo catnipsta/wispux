@@ -1,2 +1,3 @@
 # Wispux
 Wispux — a minimal, source-based Linux distribution.
+<img src="wispux.png"/>
