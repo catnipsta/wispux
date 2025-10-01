@@ -638,7 +638,6 @@ EOF
 sed -i 's/pkgver=.*/pkgver=8.6.16/' ~/.cache/drag/stash/tcl/PKGBUILD
 sed -i 's/pkgname=.*/pkgname=libxcrypt/' ~/.cache/drag/stash/libxcrypt/PKGBUILD
 sed -i '/--with-libpam/d; /--with-audit/d; /--enable-man/d' ~/.cache/drag/stash/shadow/PKGBUILD
-sed -i 's/^[[:space:]]*make[[:space:]]*$/make clean \&\& make/' ~/.cache/drag/stash/grep/PKGBUILD
 sed -i '/case/,/esac/d' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i '/local _platform/d' ~/.cache/drag/stash/openssl/PKGBUILD
 sed -i 's/pkgbase/pkgname/' ~/.cache/drag/stash/openssl/PKGBUILD
@@ -1510,6 +1509,7 @@ cd $ashtray/grep/src/grep*/
 ./configure --prefix=/usr --host=$TGT --build=$(./build-aux/config.guess)
 make
 make DESTDIR=$DRAG_ROOT install
+make distclean
 
 touch ~/.cache/wispux-bootstrap/18
 fi
