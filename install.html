@@ -201,10 +201,9 @@ sha256sum bootstrap-nm.sh</code></pre>
 			</p>
 			<code>snoop shadow</code>
 			<p class="instructions">
-			Some PKGBUILDs will have complex configure options that aren't supported yet on your minimal system. To fix these,
-			remove or modify these options. Others will fail because of tests. Remember that not all tests 
-			are expected to pass since this is in a chroot environment. To disable tests, just remove the whole check
-			function from a PKGBUILD. Arch's PKGBUILDs also contain lots of install commands in the package functions which don't
+			Some PKGBUILDs will have bloated configure options that aren't supported yet on your minimal system. To fix these,
+			remove or modify these options.
+			Arch's PKGBUILDs also contain lots of install commands in the package functions which don't
 			always work, especially after you've modified a PKGBUILD. If you come across lines in the package function attempting
 			to install or modify files which don't exist, remove them.
 			</p>
