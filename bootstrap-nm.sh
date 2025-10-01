@@ -1719,10 +1719,22 @@ tmpfsmount
 chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
 cd $ashtray/perl/src/perl*/
+
+#sh Configure -des \
+#	-D prefix=/usr \
+#	-D vendorprefix=/usr \
+#	-D useshrplib
+export pkgver=$(cat $ashtray/perl/ver)
 sh Configure -des \
-	-D prefix=/usr \
-	-D vendorprefix=/usr \
-	-D useshrplib
+        -Dprefix=/usr \
+        -Dvendorprefix=/usr \
+        -Dprivlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
+        -Darchlib=/usr/lib/perl5/${pkgver%.*}/core_perl \
+        -Dsitelib=/usr/lib/perl5/${pkgver%.*}/site_perl \
+        -Dsitearch=/usr/lib/perl5/${pkgver%.*}/site_perl \
+        -Dvendorlib=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
+        -Dvendorarch=/usr/lib/perl5/${pkgver%.*}/vendor_perl \
+        -Duseshrplib
 make
 make install
 make distclean
