@@ -237,7 +237,7 @@ EOF
 echo "export MAKEFLAGS='"$MAKEFLAGS"'" >> $DRAG_ROOT/etc/profile
 	cat >> $DRAG_ROOT/etc/profile << "EOF"
 #export CFLAGS="-march=native -O2 -pipe"
-#export CXXFLAGS="$CFLAGS"
+#export CXXFLAGS="${CFLAGS}"
 
 if [ -d /etc/profile.d/ ]; then
         for f in /etc/profile.d/*.sh; do
