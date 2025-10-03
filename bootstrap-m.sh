@@ -642,6 +642,11 @@ cd eudev-$pkgver/build
 cp -a $srcdir/64/* $pkgdir
 mkdir -p $pkgdir/usr/lib32
 cp -r $srcdir/32/usr/lib32/* $pkgdir/usr/lib32
+
+mkdir -p $pkgdir/etc/udev/rules.d
+echo 'KERNEL=="card*", SUBSYSTEM=="drm", GROUP="video", MODE="0660"' > $pkgdir/etc/udev/rules.d/99-dri.rules
+echo 'KERNEL=="renderD*", SUBSYSTEM=="drm", GROUP="video", MODE="0660"' >> $pkgdir/etc/udev/rules.d/99-dri.rules
+echo 'KERNEL=="event*", SUBSYSTEM=="input", GROUP="input", MODE="0660"' > $pkgdir/etc/udev/rules.d/99-input.rules
 }
 EOF
 
