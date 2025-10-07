@@ -325,8 +325,9 @@ sleep 1
 kill -KILL -1
 
 echo "Unmounting filesystems..."
+swapoff -a
 umount $(awk '$2 != "/" && $2 != "/proc" && $2 != "/sys" && $2 != "/dev" && $2 != "/run" {print $2}' /proc/mounts | tac)
-mount -o remount,rw /
+mount -o remount,ro /
 
 echo "Powering off..."
 echo o > /proc/sysrq-trigger
@@ -352,8 +353,9 @@ sleep 1
 kill -KILL -1
 
 echo "Unmounting filesystems..."
+swapoff -a
 umount $(awk '$2 != "/" && $2 != "/proc" && $2 != "/sys" && $2 != "/dev" && $2 != "/run" {print $2}' /proc/mounts | tac)
-mount -o remount,rw /
+mount -o remount,ro /
 
 echo "Rebooting..."
 echo b > /proc/sysrq-trigger
@@ -379,8 +381,9 @@ sleep 1
 kill -KILL -1
 
 echo "Unmounting filesystems..."
+swapoff -a
 umount $(awk '$2 != "/" && $2 != "/proc" && $2 != "/sys" && $2 != "/dev" && $2 != "/run" {print $2}' /proc/mounts | tac)
-mount -o remount,rw /
+mount -o remount,ro /
 
 echo "Halting..."
 echo h > /proc/sysrq-trigger
@@ -1091,6 +1094,7 @@ cd util-linux-$pkgver
 	--runstatedir=/run \
 	--disable-liblastlog2 \
 	--disable-pylibmount \
+	--enable-su \
 	--without-python
 make
 }
@@ -1793,7 +1797,7 @@ cd $ashtray/util-linux/src/util-linux*/
 	--disable-chfn-chsh \
 	--disable-login \
 	--disable-nologin \
-	--disable-su \
+	--enable-su \
 	--disable-setpriv \
 	--disable-runuser \
 	--disable-pylibmount \
