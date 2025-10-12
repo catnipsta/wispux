@@ -1245,7 +1245,6 @@ cd util-linux-$pkgver
 	--runstatedir=/run \
 	--disable-liblastlog2 \
         --disable-pylibmount \
-	--enable-su \
         --without-python
 make
 }
@@ -1273,7 +1272,6 @@ CC="gcc -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" ./configure --bindir=/usr/b
 	--runstatedir=/run \
 	--disable-liblastlog2 \
         --disable-pylibmount \
-	--enable-su \
         --without-python
 make
 }
@@ -2017,7 +2015,7 @@ cd $ashtray/util-linux/src/util-linux*/
 	--disable-chfn-chsh \
 	--disable-login \
 	--disable-nologin \
-	--enable-su \
+	--disable-su \
 	--disable-setpriv \
 	--disable-runuser \
 	--disable-pylibmount \
@@ -2034,7 +2032,7 @@ CC='gcc -m32' \
 	--disable-chfn-chsh \
 	--disable-login \
 	--disable-nologin \
-	--enable-su \
+	--disable-su \
 	--disable-setpriv \
 	--disable-runuser \
 	--disable-pylibmount \
