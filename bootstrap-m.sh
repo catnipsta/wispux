@@ -1967,7 +1967,6 @@ pkgver=$(cat $ashtray/perl/ver) sh Configure -des \
         -Duseshrplib
 make
 make install
-make distclean
 "
 
 touch ~/.cache/wispux-bootstrap/29
