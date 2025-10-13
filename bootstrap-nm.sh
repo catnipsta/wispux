@@ -543,7 +543,7 @@ pkgver=${pkgver%%+*}
 EOF
 )
 cat >> ~/.cache/drag/stash/binutils/PKGBUILD << "EOF"
-source=("https://sourceware.org/pub/binutils/releases/binutils-$pkgver.tar.xz")
+source=("git+https://sourceware.org/git/binutils-gdb.git")
 
 build() {
 cd binutils-$pkgver
