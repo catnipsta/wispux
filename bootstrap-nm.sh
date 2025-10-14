@@ -543,7 +543,7 @@ pkgver=${pkgver%%+*}
 EOF
 )
 cat >> ~/.cache/drag/stash/binutils/PKGBUILD << "EOF"
-source=("git+https://sourceware.org/git/binutils-gdb.git")
+source=("https://sourceware.org/pub/binutils/releases/binutils-$pkgver.tar.xz")
 
 build() {
 cd binutils-$pkgver
@@ -1136,6 +1136,7 @@ cat >> ~/.cache/drag/stash/zlib/PKGBUILD << "EOF"
 build(){
 cd zlib-$pkgver
 
+CFLAGS+=" -fPIC"
 ./configure --prefix=/usr 
 make
 }
