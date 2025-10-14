@@ -741,8 +741,8 @@ sed -zi 's/source=(\([^)]*\))/source=(https:\/\/distfiles.ariadne.space\/pkgconf
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/attr\/attr-$pkgver.tar.gz)/' ~/.cache/drag/stash/attr/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/acl\/acl-$pkgver.tar.xz)/' ~/.cache/drag/stash/acl/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/sourceforge.net\/projects\/psmisc\/files\/psmisc\/psmisc-$pkgver.tar.xz)/' ~/.cache/drag/stash/psmisc/PKGBUILD
-sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/libtool\/libtool-${pkgver%%+*}.tar.xz)/' ~/.cache/drag/stash/libtool/PKGBUILD
-sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/libtool\/libtool-${pkgver%%+*}.tar.xz)/' ~/.cache/drag/stash/lib32-libltdl/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/autotools-mirror\/libtool\/archive\/refs\/tags\/v$pkgver.tar.gz)/' ~/.cache/drag/stash/libtool/PKGBUILD
+sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/autotools-mirror\/libtool\/archive\/refs\/tags\/v$pkgver.tar.gz)/' ~/.cache/drag/stash/lib32-libltdl/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/inetutils\/inetutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/inetutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/automake\/automake-$pkgver.tar.xz)/' ~/.cache/drag/stash/automake/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/groff\/groff-$pkgver.tar.gz)/' ~/.cache/drag/stash/groff/PKGBUILD
