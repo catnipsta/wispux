@@ -249,19 +249,19 @@ echo "LANG=ru_RU.UTF-8" > /etc/locale.conf</code></pre>
 /dev/sda1	/boot/efi	vfat	defaults	0 2</code></pre>
 			<b>7. Compiling the Kernel</b>
 			<p class="instructions">
-			To configure your kernel, you can either manually edit /usr/src/linux-x.x.x/.config or you can use a tool like
+			To configure your kernel, you can either manually edit /usr/src/linux-X.XX.XXX/.config or you can use a tool like
 			menuconfig or nconfig. You can set the variable EXTRAVERSION found in the Makefile to "-wispux" to generate a
 			kernel with the ending "-wispux". 
-			Below is an example of how you can configure, compile, and install the Linux kernel 6.12.44.
+			Below is an example of how you can configure, compile, and install the Linux kernel.
 			</p>
-			<pre><code>cd /usr/src/linux-6.12.44
+			<pre><code>cd /usr/src/linux-X.XX.XXX
 make mrproper
 make nconfig
 make
 make modules_install
 make install
-mv /boot/vmlinuz /boot/vmlinuz-6.12.44-wispux
-mv /boot/System.map /boot/System.map-6.12.44</code></pre>
+mv /boot/vmlinuz /boot/vmlinuz-X.XX.XXX-wispux
+mv /boot/System.map /boot/System.map-X.XX.XXX</code></pre>
 			<p class="instructions">
 			Remember that you may also need to install linux-firmware depending on the drivers you need.
 			</p>
