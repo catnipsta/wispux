@@ -1136,7 +1136,7 @@ cat >> ~/.cache/drag/stash/zlib/PKGBUILD << "EOF"
 build(){
 cd zlib-$pkgver
 
-CFLAGS+=" -fPIC"
+export CFLAGS="-fPIC"
 ./configure --prefix=/usr 
 make
 }
