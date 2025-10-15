@@ -63,7 +63,6 @@ bash
 libtool
 lib32-libltdl
 gdbm
-lib32-gdbm
 gperf
 expat
 lib32-expat
@@ -1131,30 +1130,6 @@ make
 package(){
 cd gdbm-$pkgver
 make DESTDIR=$pkgdir install
-}
-EOF
-
-(source ~/.cache/drag/stash/lib32-gdbm/PKGBUILD
-cat > ~/.cache/drag/stash/lib32-gdbm/PKGBUILD << EOF
-pkgname=lib32-gdbm
-pkgver=$pkgver
-source=(https://ftp.gnu.org/gnu/gdbm/gdbm-$pkgver.tar.gz)
-EOF
-)
-cat >> ~/.cache/drag/stash/lib32-gdbm/PKGBUILD << "EOF"
-build(){
-cd gdbm-$pkgver
-CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH="/usr/lib32/pkgconfig" \
-./configure --prefix=/usr \
-	--libdir=/usr/lib32 \
-	--disable-static \
-	--enable-libgdbm-compat
-make
-}
-package(){
-cd gdbm-$pkgver
-make DESTDIR=$pkgdir install
-rm -rf "$pkgdir"/usr/{bin,share,include}
 }
 EOF
 
