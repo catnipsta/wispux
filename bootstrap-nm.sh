@@ -410,9 +410,21 @@ echo
 
 rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
 
-DKRNLVER=6.12.44
-DGLIBCVER=2.41
-DGCCVER=14.2.0
+curl -Lo ~/.cache/wispux-bootstrap/lfs.html https://linuxfromscratch.org/lfs/view/stable/chapter03/packages.html
+
+DGCCVER=$(grep ">GCC (" ~/.cache/wispux-bootstrap/lfs.html)
+DGCCVER=${DGCCVER##*\(}
+DGCCVER=${DGCCVER%%)*}
+
+DGLIBCVER=$(grep ">Glibc (" ~/.cache/wispux-bootstrap/lfs.html)
+DGLIBCVER=${DGLIBCVER##*\(}
+DGLIBCVER=${DGLIBCVER%%)*}
+
+DKRNLVER=$(grep ">Linux (" ~/.cache/wispux-bootstrap/lfs.html)
+DKRNLVER=${DKRNLVER##*\(}
+DKRNLVER=${DKRNLVER%%)*}
+
+rm ~/.cache/wispux-bootstrap/lfs.html
 
 read -p "What Linux kernel version do you wish to use? (default: $DKRNLVER) " KRNLVER
 read -p "Glibc version? (default: $DGLIBCVER) " GLIBCVER
@@ -1136,7 +1148,7 @@ cat >> ~/.cache/drag/stash/zlib/PKGBUILD << "EOF"
 build(){
 cd zlib-$pkgver
 
-export CFLAGS="-fPIC"
+export CFLAGS+=" -fPIC"
 ./configure --prefix=/usr 
 make
 }
