@@ -412,13 +412,15 @@ rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
 
 curl -Lo ~/.cache/wispux-bootstrap/lfs.html https://linuxfromscratch.org/lfs/view/stable/chapter03/packages.html
 
-DGCCVER=$(grep ">GCC (" ~/.cache/wispux-bootstrap/lfs.html)
-DGCCVER=${DGCCVER##*\(}
-DGCCVER=${DGCCVER%%)*}
+#DGCCVER=$(grep ">GCC (" ~/.cache/wispux-bootstrap/lfs.html)
+#DGCCVER=${DGCCVER##*\(}
+#DGCCVER=${DGCCVER%%)*}
+DGCCVER=14.2.0
 
-DGLIBCVER=$(grep ">Glibc (" ~/.cache/wispux-bootstrap/lfs.html)
-DGLIBCVER=${DGLIBCVER##*\(}
-DGLIBCVER=${DGLIBCVER%%)*}
+#DGLIBCVER=$(grep ">Glibc (" ~/.cache/wispux-bootstrap/lfs.html)
+#DGLIBCVER=${DGLIBCVER##*\(}
+#DGLIBCVER=${DGLIBCVER%%)*}
+DGLIBCVER=2.41
 
 DKRNLVER=$(grep ">Linux (" ~/.cache/wispux-bootstrap/lfs.html)
 DKRNLVER=${DKRNLVER##*\(}
