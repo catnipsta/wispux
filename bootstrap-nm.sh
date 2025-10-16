@@ -1741,19 +1741,16 @@ tmpfsmount
 chroot $DRAG_ROOT /bin/bash -c "
 source /etc/profile
 cd $ashtray/perl/src/perl*/
-pkgver=$(cat $ashtray/perl/ver) sh Configure -des \
-        -Dprefix=/usr \
-        -Dvendorprefix=/usr \
-        -Dprivlib=/usr/lib/perl5/\${pkgver%.*}/core_perl \
-        -Darchlib=/usr/lib/perl5/\${pkgver%.*}/core_perl \
-        -Dsitelib=/usr/lib/perl5/\${pkgver%.*}/site_perl \
-        -Dsitearch=/usr/lib/perl5/\${pkgver%.*}/site_perl \
-        -Dvendorlib=/usr/lib/perl5/\${pkgver%.*}/vendor_perl \
-        -Dvendorarch=/usr/lib/perl5/\${pkgver%.*}/vendor_perl \
-        -Duseshrplib
+sh Configure -des \
+	-D prefix=/usr \
+	-D vendorprefix=/usr \
+	-D useshrplib
 make
 make install
 "
+cd $ashtray/perl/src
+rm -rf perl*/
+tar xJf perl*.tar.xz
 
 touch ~/.cache/wispux-bootstrap/29
 fi
