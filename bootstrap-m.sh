@@ -704,7 +704,8 @@ echo depends bli part_gpt > grub-core/extra_deps.lst
 build(){
 unset {C,CXX,LD}FLAGS
 cd grub-$pkgver
-./configure --prefix=/usr --sysconfdir=/etc --disable-efiemu --disable-werror
+[[ $(cat /sys/firmware/efi/fw_platform_size) == 64 ]] && fluff="--target=x86_64 --with-platform=efi"
+./configure --prefix=/usr --sysconfdir=/etc --disable-efiemu --disable-werror $fluff
 make
 }
 package() {

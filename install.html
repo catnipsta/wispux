@@ -231,7 +231,7 @@ echo "LANG=ru_RU.UTF-8" > /etc/locale.conf</code></pre>
 ::1          localhost</pre></code>
 			<p class="instructions">
 			To set your timezone, tzdata needs to be installed.
-			When packages are stashed, it will prompt you to edit the PKGBUILD.
+			When packages are stashed, you will be prompted to edit the PKGBUILD.
 			Feel free to look over the PKGBUILD, though this package should install correctly without any interference.
 			</p>
 			<code>smoke tzdata</code>
@@ -250,8 +250,7 @@ echo "LANG=ru_RU.UTF-8" > /etc/locale.conf</code></pre>
 			<b>7. Compiling the Kernel</b>
 			<p class="instructions">
 			To configure your kernel, you can either manually edit /usr/src/linux-X.XX.XXX/.config or you can use a tool like
-			menuconfig or nconfig. You can set the variable EXTRAVERSION found in the Makefile to "-wispux" to generate a
-			kernel with the ending "-wispux". 
+			menuconfig or nconfig.
 			Below is an example of how you can configure, compile, and install the Linux kernel.
 			</p>
 			<pre><code>cd /usr/src/linux-X.XX.XXX
