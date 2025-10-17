@@ -47,7 +47,7 @@ code {
 	margin-right: auto;
 	width: 100%;
 	max-width: 800px;
-	overflow: hidden;
+	overflow: scroll;
 	line-height: 1.5;
 	display: block;
 }
