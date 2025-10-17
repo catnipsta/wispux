@@ -283,6 +283,11 @@ udevadm settle
 # Module loading
 #modprobe i915
 
+setsid agetty --noclear tty1 38400 linux &
+setsid agetty tty2 38400 linux &
+setsid agetty tty3 38400 linux &
+setsid agetty tty4 38400 linux &
+
 # Manual ethernet
 #ip link set lo up
 #ip link set eth0 up
@@ -294,11 +299,6 @@ udevadm settle
 
 # dhcpcd
 #dhcpcd -b
-
-setsid agetty --noclear tty1 38400 linux &
-setsid agetty tty2 38400 linux &
-setsid agetty tty3 38400 linux &
-setsid agetty tty4 38400 linux &
 
 while true; do wait; done
 EOF
