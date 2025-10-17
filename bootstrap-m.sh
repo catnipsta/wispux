@@ -889,6 +889,8 @@ package(){
 cd $pkgname-$pkgver
 make DESTDIR=$pkgdir install
 ln -sv pkgconf $pkgdir/usr/bin/pkg-config
+ln -sv pkgconf $pkgdir/usr/bin/i686-pc-linux-gnu-pkg-config
+ln -sv pkgconf $pkgdir/usr/bin/x86_64-pc-linux-gnu-pkg-config
 }
 EOF
 
