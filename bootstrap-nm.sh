@@ -992,6 +992,8 @@ install -vDm644 data/shell-completions/bash/meson $pkgdir/usr/share/bash-complet
 install -vDm644 data/shell-completions/zsh/_meson $pkgdir/usr/share/zsh/site-functions/_meson
 install -D ../arch-meson -t "$pkgdir/usr/bin"
 sed -i '/features/d' $pkgdir/usr/bin/arch-meson
+install -Dm644 ../cross-lib32 "$pkgdir/usr/share/meson/cross/lib32"
+install -Dm644 ../native-clang "$pkgdir/usr/share/meson/native/clang"
 }
 EOF
 
