@@ -302,6 +302,8 @@ udevadm settle
 # Module loading
 #modprobe i915
 
+ip link set lo up
+
 # D-Bus
 #mkdir -p /run/dbus
 #chmod 755 /run/dbus
@@ -314,7 +316,6 @@ setsid agetty tty3 38400 linux &
 setsid agetty tty4 38400 linux &
 
 # Manual ethernet
-#ip link set lo up
 #ip link set eth0 up
 #ip addr add XXX.XXX.XXX.XXX/XX dev eth0
 #ip route add default via XXX.XXX.XXX.XXX
