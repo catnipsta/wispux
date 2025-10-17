@@ -302,6 +302,12 @@ udevadm settle
 # Module loading
 #modprobe i915
 
+# D-Bus
+#mkdir -p /run/dbus
+#chmod 755 /run/dbus
+#export $(dbus-launch)
+#dbus-daemon --system --nofork --nopidfile &
+
 setsid agetty --noclear tty1 38400 linux &
 setsid agetty tty2 38400 linux &
 setsid agetty tty3 38400 linux &
