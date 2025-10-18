@@ -670,6 +670,7 @@ mkdir -p $pkgdir/etc/udev/rules.d
 echo 'KERNEL=="card*", SUBSYSTEM=="drm", GROUP="video", MODE="0660"' > $pkgdir/etc/udev/rules.d/99-dri.rules
 echo 'KERNEL=="renderD*", SUBSYSTEM=="drm", GROUP="video", MODE="0660"' >> $pkgdir/etc/udev/rules.d/99-dri.rules
 echo 'KERNEL=="event*", SUBSYSTEM=="input", GROUP="input", MODE="0660"' > $pkgdir/etc/udev/rules.d/99-input.rules
+echo 'SUBSYSTEM=="sound", GROUP="audio"' > $pkgdir/etc/udev/rules.d/90-alsa.rules
 }
 EOF
 
