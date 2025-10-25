@@ -978,7 +978,8 @@ cat > ~/.cache/drag/stash/meson/PKGBUILD << EOF
 pkgname=meson
 pkgver=$pkgver
 source=(https://github.com/mesonbuild/meson/releases/download/$pkgver/meson-$pkgver.tar.gz
-arch-meson)
+arch-meson
+native-clang)
 EOF
 )
 cat >> ~/.cache/drag/stash/meson/PKGBUILD << "EOF"
