@@ -436,23 +436,21 @@ echo
 
 rm -rf $DRAG_ROOT/usr/src/linux* $ashtray/glibc $ashtray/gcc
 
-curl -Lo ~/.cache/wispux-bootstrap/lfs.html https://linuxfromscratch.org/lfs/view/stable/chapter03/packages.html
-
+#curl -Lo ~/.cache/wispux-bootstrap/lfs.html https://linuxfromscratch.org/lfs/view/stable/chapter03/packages.html
 #DGCCVER=$(grep ">GCC (" ~/.cache/wispux-bootstrap/lfs.html)
 #DGCCVER=${DGCCVER##*\(}
 #DGCCVER=${DGCCVER%%)*}
-DGCCVER=14.2.0
-
 #DGLIBCVER=$(grep ">Glibc (" ~/.cache/wispux-bootstrap/lfs.html)
 #DGLIBCVER=${DGLIBCVER##*\(}
 #DGLIBCVER=${DGLIBCVER%%)*}
+#DKRNLVER=$(grep ">Linux (" ~/.cache/wispux-bootstrap/lfs.html)
+#DKRNLVER=${DKRNLVER##*\(}
+#DKRNLVER=${DKRNLVER%%)*}
+#rm ~/.cache/wispux-bootstrap/lfs.html
+
+DGCCVER=14.2.0
 DGLIBCVER=2.41
-
-DKRNLVER=$(grep ">Linux (" ~/.cache/wispux-bootstrap/lfs.html)
-DKRNLVER=${DKRNLVER##*\(}
-DKRNLVER=${DKRNLVER%%)*}
-
-rm ~/.cache/wispux-bootstrap/lfs.html
+DKRNLVER=6.12.55
 
 read -p "What Linux kernel version do you wish to use? (default: $DKRNLVER) " KRNLVER
 read -p "Glibc version? (default: $DGLIBCVER) " GLIBCVER
