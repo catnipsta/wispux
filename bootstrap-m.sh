@@ -326,7 +326,7 @@ setsid agetty tty4 38400 linux &
 # dhcpcd
 #dhcpcd -b
 
-while true; do wait; done
+while true; do sleep 60; done
 EOF
 	chmod +x $DRAG_ROOT/sbin/init
 	echo "Pinching power utilities"
