@@ -396,7 +396,6 @@ echo "Halting..."
 echo h > /proc/sysrq-trigger
 EOF
 	chmod +x $DRAG_ROOT/sbin/poweroff $DRAG_ROOT/sbin/reboot $DRAG_ROOT/sbin/halt
-	cp $DRAG_ROOT/sbin/{poweroff,reboot,halt} $DRAG_ROOT/usr/bin
 
 	echo "Pinching drag"
 	cd
