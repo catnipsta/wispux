@@ -638,13 +638,9 @@ mv linux-firmware $pkgdir/usr/lib/firmware
 EOF
 
 stash -ns grub
-(source ~/.cache/drag/stash/grub/PKGBUILD
 cat > ~/.cache/drag/stash/grub/PKGBUILD << EOF
 pkgname=grub
-pkgver=$_pkgver
-EOF
-)
-cat >> ~/.cache/drag/stash/grub/PKGBUILD << "EOF"
+pkgver=2.12
 source=(https://ftp.gnu.org/gnu/grub/grub-$pkgver.tar.xz)
 prepare(){
 cd grub-$pkgver
