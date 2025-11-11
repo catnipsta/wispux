@@ -189,24 +189,17 @@ sha256sum bootstrap-nm.sh</code></pre>
 			</p>
 			<b>5. STAGE 33</b>
 			<p class="instructions">
+			STAGE 33 is the final stage of the Wispux bootstrap.
 			If you have ever performed or studied LFS, you can think of STAGE 33 like Chapter 8.
-			Unlike LFS, STAGE 33 is mostly automated. I say mostly automated because it uses
-			Arch's PKGBUILDs for installing packages. Many PKGBUILDs are patched by the bootstrap
-			and while many packages will install without any manual intervention, some PKGBUILDs are going to require modification.
-			Each time a packge fails to compile, it will almost definitely be because of the PKGBUILD.
-			What better time to learn the drag package manager than now?
+			The drag package manager uses PKGBUILDs as instructions to build pacakges.
+			STAGE 33 should complete without any manual intervention, but there still lies the possibility
+			that the bootstrap doesn't have the latest patches for all the PKGBUILDs.
+			Therefore, it may be necessary to edit certain PKGBUILDs.
 			</p>
 			<p class="instructions">
-			You can edit shadow's PKGBUILD by running the command:
+			For example, you can edit tcl's PKGBUILD by running the command:
 			</p>
-			<code>snoop shadow</code>
-			<p class="instructions">
-			Some PKGBUILDs will have bloated configure options that aren't supported yet on your minimal system. To fix these,
-			remove or modify these options.
-			Arch's PKGBUILDs also contain lots of install commands in the package functions which don't
-			always work, especially after you've modified a PKGBUILD. If you come across lines in the package function attempting
-			to install or modify files which don't exist, remove them.
-			</p>
+			<code>snoop tcl</code>
 			<b>6. Chroot</b>
 			<p class="instructions">
 			Enter your new system.

@@ -693,8 +693,7 @@ mv linux-firmware $pkgdir/usr/lib/firmware
 }
 EOF
 
-stash -ns grub
-cat > ~/.cache/drag/stash/grub/PKGBUILD << EOF
+cat > ~/.cache/drag/stash/grub/PKGBUILD << "EOF"
 pkgname=grub
 pkgver=2.12
 source=(https://ftp.gnu.org/gnu/grub/grub-$pkgver.tar.xz)
@@ -738,8 +737,14 @@ sed -i 's/.\/configure/FORCE_UNSAFE_CONFIGURE=1 .\/configure/' ~/.cache/drag/sta
 sed -i '/tracking/,/=libidn2/d' ~/.cache/drag/stash/libpsl/PKGBUILD
 sed -i '/with-psl/c\ ' ~/.cache/drag/stash/libpsl/PKGBUILD
 sed -i '/with-readline/c\ ' ~/.cache/drag/stash/bc/PKGBUILD 
+sed -i 's/2.6.0/2.5.4/' ~/.cache/drag/stash/{libtool,lib32-libltdl}/PKGBUILD
 sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,lib32-libltdl,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
 sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make,lib32-{zlib,lz4}}/PKGBUILD
+sed -i '/pkgname=/d;s/pkgbase/pkgname/g;/man/d' ~/.cache/drag/stash/e2fsprogs/PKGBUILD
+sed -i '/tmac/d' ~/.cache/drag/stash/groff/PKGBUILD
+sed -i '/pam.d/d;/systemd/d;/sysusers.d/d' ~/.cache/drag/stash/inetutils/PKGBUILD
+sed -i '/$pkgdir\//d' ~/.cache/drag/stash/shadow/PKGBUILD
+sed -i '/chmod/d;/-e /d;/-i /d' ~/.cache/drag/stash/tcl/PKGBUILD
 
 ### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
 sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,lib32-libltdl,inetutils,automake,groff,shadow,tcl,gmp,lib32-gmp,make}/PKGBUILD
