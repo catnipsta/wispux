@@ -686,7 +686,7 @@ sed -i '/$pkgdir\//d' ~/.cache/drag/stash/shadow/PKGBUILD
 sed -i '/chmod/d;/-e /d;/-i /d' ~/.cache/drag/stash/tcl/PKGBUILD
 
 ### CHECKSUMS NO LONGER VALID FOR THESE PACKAGES ###
-sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,tcl,gmp,make}/PKGBUILD
+sed -i '/b2sums=(.*)/d; /b2sums=(/,/)/d; /sha256sums=(.*)/d; /sha256sums=(/,/)/d; /sha512sums=(.*)/d; /sha512sums=(/,/)/d;' ~/.cache/drag/stash/{coreutils,diffutils,file,findutils,grep,gzip,patch,flex,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow,tcl,gmp,make}/PKGBUILD
 
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/coreutils\/coreutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/coreutils/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/diffutils\/diffutils-$pkgver.tar.xz)/' ~/.cache/drag/stash/diffutils/PKGBUILD
@@ -696,7 +696,6 @@ sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/grep\/grep-$pk
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/gzip\/gzip-$pkgver.tar.xz)/' ~/.cache/drag/stash/gzip/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/patch\/patch-$pkgver.tar.xz)/' ~/.cache/drag/stash/patch/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/westes\/flex\/releases\/download\/v$pkgver\/flex-$pkgver.tar.gz)/' ~/.cache/drag/stash/flex/PKGBUILD
-sed -zi 's/source=(\([^)]*\))/source=(https:\/\/distfiles.ariadne.space\/pkgconf\/pkgconf-$pkgver.tar.xz)/' ~/.cache/drag/stash/pkgconf/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/attr\/attr-$pkgver.tar.gz)/' ~/.cache/drag/stash/attr/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/download.savannah.gnu.org\/releases\/acl\/acl-$pkgver.tar.xz)/' ~/.cache/drag/stash/acl/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/sourceforge.net\/projects\/psmisc\/files\/psmisc\/psmisc-$pkgver.tar.xz)/' ~/.cache/drag/stash/psmisc/PKGBUILD
@@ -705,7 +704,7 @@ sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/inetutils\/ine
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/automake\/automake-$pkgver.tar.xz)/' ~/.cache/drag/stash/automake/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/ftp.gnu.org\/gnu\/groff\/groff-$pkgver.tar.gz)/' ~/.cache/drag/stash/groff/PKGBUILD
 sed -zi 's/source=(\([^)]*\))/source=(https:\/\/github.com\/shadow-maint\/shadow\/releases\/download\/$pkgver\/shadow-$pkgver.tar.xz)/' ~/.cache/drag/stash/shadow/PKGBUILD
-for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,pkgconf,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow}; do
+for i in {coreutils,diffutils,findutils,grep,gzip,patch,flex,attr,acl,psmisc,libtool,inetutils,automake,groff,shadow}; do
 	sed -i 's/cd .*pkgname.*/cd $pkgname-$pkgver/' ~/.cache/drag/stash/$i/PKGBUILD
 done
 sed -i 's/cd file/cd $pkgname-$pkgver/' ~/.cache/drag/stash/file/PKGBUILD
@@ -772,10 +771,13 @@ EOF
 cat > ~/.cache/drag/stash/pkgconf/PKGBUILD << EOF
 pkgname=pkgconf
 pkgver=$pkgver
-source=(${source[@]})
 EOF
 )
 cat >> ~/.cache/drag/stash/pkgconf/PKGBUILD << "EOF"
+source=(
+https://distfiles.ariadne.space/pkgconf/pkgconf-$pkgver.tar.xz
+{x86_64,i686}-pc-linux-gnu.personality
+)
 build(){
 cd $pkgname-$pkgver
 ./configure --prefix=/usr --disable-static
@@ -784,7 +786,12 @@ make
 package(){
 cd $pkgname-$pkgver
 make DESTDIR=$pkgdir install
-ln -sv pkgconf $pkgdir/usr/bin/pkg-config
+local p
+for p in *.personality; do
+  install -Dm644 "$p" -t "$pkgdir/usr/share/pkgconfig/personality.d"
+  ln -s pkgconf "$pkgdir/usr/bin/${p%.*}-pkg-config"
+done
+ln -s pkgconf "$pkgdir/usr/bin/pkg-config"
 }
 EOF
 
