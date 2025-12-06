@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Install - Wispux Linux</title>
+		<link rel="icon" href="/favicon.ico" type="image/x-icon">
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<header>
+			<h1>Wispux</h1>
+			<a href="/wispux/index.html">Home</a>
+                        <a href="/wispux/install.html">Installation Guide</a>
+                        <a href="/wispux/drag.html">Package Management</a>
+                        <a href="/wispux/about.html">About</a>
+		</header>
+		<main>
+			<b>Introduction</b>
+			<p class="about">
+			Wispux uses the drag package management system. It is written in Bash to be fast and completely customizable.
+			Drag uses PKGBUILDs to build and install packages. PKGBUILDs are defined by <a href="https://wiki.archlinux.org/title/PKGBUILD">archlinux.org</a> as
+			"a Bash script containing the build information required by Arch Linux packages." Drag downloads PKGBUILDs from Arch Linux's repositories and the AUR.
+			Once the PKGBUILD is downloaded, you will be prompted to make any changes to the build instructions to better match your ideal system.
+			Even though drag pulls PKGBUILDs from Arch Linux, you also have the option to write your own build instructions from scratch.
+			Also, drag will prompt you for privilege escalation when necessary so you are not required and therefore should not run drag commands with administrative privileges.
+			</p>
+			<b>Installing Packages</b>
+			<p class="about">
+			To install a package, simply use the smoke command and pass the packages you wish to install as parameters.
+			For example, if you wished to install nethack,
+			</p>
+			<pre><code>smoke nethack</code></pre>
+			<p class="about">
+			The package names used are the ones found in the Arch Linux repos and the AUR. Be cautious though as a number of packages are actually bundled with
+			other packages in the same PKGBUILD. To find the true name of a package when viewing on <a href="https://archlinux.org/packages">archlinux.org</a>,
+			click the button that says "Source Files".
+			</p>
+			<p class="about">
+			The package will go through a few build stages before installing to your system. Privilege escalation will be required for installing the packages, though building them doesn't.
+			Your package also may fail to build. This will most likely be the result of a PKGBUILD that needs editing. You can edit PKGBUILDs with the snoop command.
+			</p>
+			<b>Editing PKGBUILDs</b>
+			<p class="about">
+			The snoop command enables users to edit PKGBUILDs.
+			Simply pass the packages of the PKGBUILDs which you wish to edit as parameters as so:
+			</p>
+			<pre><code>snoop curl sudo vi</code></pre>
+			<p class="about">
+			This will prompt you to edit the said package's PKGBUILDs with the detected text editor. The text editor detection order goes as follows:
+			nano, vim, nvim, emacs, vi, ed.
+			</p>
+			<p class="about">
+			Typical edits you will have to make to PKGBUILDs pulled from Arch would be removing or modifying configuration parameters. Certain parameters
+			may require certain packages or system components that you don't need. Sometimes the pkgname variable will be declared as an array. This means that
+			there are also multiple package functions declared in the script. If you find certain packages unnecessary, simply remove them from the array and their
+			package function will not be executed.
+			</p>
+			<b>Removing Packages</b>
+			<p class="about">
+			The stub command is responsible for removing packages from the system.
+			If one wanted to remove the installed files associated with nethack, they would run:
+			</p>
+			<pre><code>stub nethack</pre></code>
+			<b>Package Information</b>
+			<p class="about">
+			The wiff command lists information stored in PKGBUILDs.
+			This information includes the version of the package's PKGBUILD, the version of the package currently installed on your system (if installed), what sub packages it provides,
+			its description, dependencies, and conflicts. This is especially useful when resolving build issues caused by missing dependencies. Keep in mind though, that not all dependencies
+			are always strictly required since modifying the configuration parameters gives you flexibility.
+			</p>
+			<b>Removing Package Cache</b>
+			<p class="about">
+			The blaze command provides the ability to remove package's build cache (ashtray) and PKGBUILD directory (stash).
+			This is useful for freeing disk space and starting fresh on package builds and installs.
+			</p>
+			<b>Parameters</b>
+			<p class="about">
+			The smoke command can prompt you to blaze packages before smoking them with the -b parameter.
+			The smoke command has the ability to install a package which is already installed (override) with the -o parameter.
+			When passing both, -b and -o should be combined on the smoke command as either -bo or -ob.
+			If certain packages are rather annoying to build, you can download the x86-64 binary instead by passing --bin64 to the smoke command.
+			That being said, binaries should only be used when you are desperate since this doesn't play nicely with dependencies. This is why it is recommended to download the binary's dependencies as binaries as well.
+			The stash command can skip snooping with -ns.
+			</p>
+		</main>
+		<footer>
+			<p>2025 Catnipsta - Nikolai Klover - GPLv3</p>
+                        <p>Linux® is the registered trademark of Linus Torvalds in the U.S. and other countries.</p>
+		</footer>
+	</body>
+</html>
