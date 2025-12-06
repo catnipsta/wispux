@@ -38,7 +38,9 @@
 			</p>
 			<p class="about">
 			The package will go through a few build stages before installing to your system. Privilege escalation will be required for installing the packages, though building them doesn't.
-			Your package also may fail to build. This will most likely be the result of a PKGBUILD that needs editing. You can edit PKGBUILDs with the snoop command.
+			Your package also may fail to build. The two most common reasons are missing dependencies and a PKGBUILD that needs editing. Drag does not include automatic dependency resolution, putting the user in control of the operation.
+			You can list the recommended dependencies from Arch Linux with the wiff command, though not all of these dependencies are strictly requires if you remove certain configuration parameters from the PKGBUILD.
+			You can edit PKGBUILDs with the snoop command.
 			</p>
 			<b>Editing PKGBUILDs</b>
 			<p class="about">
