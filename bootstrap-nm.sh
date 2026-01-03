@@ -637,6 +637,7 @@ mv linux-firmware $pkgdir/usr/lib/firmware
 }
 EOF
 
+mkdir -p ~/.cache/drag/stash/grub
 cat > ~/.cache/drag/stash/grub/PKGBUILD << "EOF"
 pkgname=grub
 pkgver=2.12
