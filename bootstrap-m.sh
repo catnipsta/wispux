@@ -742,7 +742,6 @@ sed -i 's/2.6.0/2.5.4/' ~/.cache/drag/stash/{libtool,lib32-libltdl}/PKGBUILD
 sed -i '/prepare()/,/^}/d' ~/.cache/drag/stash/{expect,grep,libtool,lib32-libltdl,inetutils,coreutils,diffutils,findutils,gzip,patch,libpsl,file,readline,flex,gmp,mpfr,attr,acl,shadow,psmisc,groff}/PKGBUILD
 sed -i '/check()/,/^}/d' ~/.cache/drag/stash/{tcl,bison,autoconf,automake,libffi,psmisc,libtool,coreutils,gawk,tar,texinfo,attr,acl,sed,gperf,make,lib32-{zlib,lz4}}/PKGBUILD
 sed -i '/pkgname=/d;s/pkgbase/pkgname/g;/man/d' ~/.cache/drag/stash/e2fsprogs/PKGBUILD
-sed -i '/tmac/d' ~/.cache/drag/stash/groff/PKGBUILD
 sed -i '/pam.d/d;/systemd/d;/sysusers.d/d' ~/.cache/drag/stash/inetutils/PKGBUILD
 sed -i '/$pkgdir\//d' ~/.cache/drag/stash/shadow/PKGBUILD
 sed -i '/chmod/d;/-e /d;/-i /d' ~/.cache/drag/stash/tcl/PKGBUILD
@@ -774,6 +773,8 @@ sed -i 's/cd file/cd $pkgname-$pkgver/' ~/.cache/drag/stash/file/PKGBUILD
 sed -i 's/cd libtool/cd libtool-${pkgver%%+*}/' ~/.cache/drag/stash/{libtool,lib32-libltdl}/PKGBUILD
 sed -i 's/lz/xz/' ~/.cache/drag/stash/{gmp,lib32-gmp}/PKGBUILD
 sed -i 's/lz/gz/' ~/.cache/drag/stash/make/PKGBUILD
+
+sed -i '/tmac/d' ~/.cache/drag/stash/groff/PKGBUILD
 
 (source ~/.cache/drag/stash/xz/PKGBUILD
 cat > ~/.cache/drag/stash/xz/PKGBUILD << EOF
@@ -891,6 +892,7 @@ make
 package(){
 cd $pkgname-$pkgver
 make DESTDIR=$pkgdir install
+cd $srcdir
 local p
 for p in *.personality; do
   install -Dm644 "$p" -t "$pkgdir/usr/share/pkgconfig/personality.d"
