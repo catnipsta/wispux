@@ -63,6 +63,7 @@ elfutils
 libffi
 python
 python-flit-core
+python-packaging
 python-wheel
 python-setuptools
 ninja
@@ -884,6 +885,25 @@ pip3 install --root=$pkgdir --no-index --find-links dist flit_core
 }
 EOF
 
+(source ~/.cache/drag/stash/python-packaging/PKGBUILD
+cat > ~/.cache/drag/stash/python-packaging/PKGBUILD << EOF
+pkgname=python-packaging
+pkgver=$pkgver
+source=(https://pypi.org/packages/source/p/packaging/packaging-$pkgver.tar.gz)
+EOF
+)
+cat >> ~/.cache/drag/stash/python-packaging/PKGBUILD << "EOF"
+build(){
+cd packaging-$pkgver
+pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
+}
+package(){
+cd packaging-$pkgver
+mkdir -p $pkgdir
+pip3 install --root=$pkgdir --no-index --find-links dist packaging
+}
+EOF
+
 (source ~/.cache/drag/stash/python-wheel/PKGBUILD
 cat > ~/.cache/drag/stash/python-wheel/PKGBUILD << EOF
 pkgname=python-wheel
@@ -1275,7 +1295,7 @@ echo
 cd $ashtray/gcc/src/gcc*/
 tar xJf $ashtray/mpfr/src/mpfr*.tar.xz
 tar xJf $ashtray/gmp/src/gmp*.tar.xz
-tar xzf $ashtray/libmpc/src/mpc*.tar.gz
+tar xJf $ashtray/libmpc/src/mpc*.tar.xz
 rm -rf mpfr
 rm -rf gmp
 rm -rf mpc
@@ -1394,7 +1414,7 @@ echo
 echo "STAGE 10 - m4"
 echo
 
-cd $ashtray/m4/src/m4*/
+cd $ashtray/m4/src/m4-*/
 
 ./configure --prefix=/usr --host=$TGT --build=$(build-aux/config.guess)
 make
@@ -1677,7 +1697,7 @@ echo
 cd $ashtray/gcc/src/gcc*/
 tar xJf $ashtray/mpfr/src/mpfr*.tar.xz
 tar xJf $ashtray/gmp/src/gmp*.tar.xz
-tar xzf $ashtray/libmpc/src/mpc*.tar.gz
+tar xJf $ashtray/libmpc/src/mpc*.tar.xz
 rm -rf mpfr
 rm -rf gmp
 rm -rf mpc
