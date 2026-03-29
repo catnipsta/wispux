@@ -305,13 +305,13 @@ mv /boot/System.map /boot/System.map-X.XX.XXX</code></pre>
 			the commands shown below.
 			</p>
 			<pre><code>grub-install --target=i386-pc /dev/sda
-grub-mkconfig /boot/grub/grub.cfg</code></pre>
+grub-mkconfig -o /boot/grub/grub.cfg</code></pre>
 			<p class="instructions">
 			You can install GRUB for 64 bit UEFI systems assuming that your efi
 			directory is /boot/efi with the commands shown below.
 			</p>
 			<pre><code>grub-install --target=x86_64-efi --efi-directory=/boot/efi
-grub-mkconfig /boot/grub/grub.cfg</code></pre>
+grub-mkconfig -o /boot/grub/grub.cfg</code></pre>
 			<b>10. Reboot</b>
 			<p class="instructions">
 			Some people may choose at this point to install and set up certain packages such as sudo.
